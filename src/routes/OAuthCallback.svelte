@@ -7,8 +7,11 @@
   let error = null;
   
   onMount(async () => {
-    // Parse URL parameters
-    const params = new URLSearchParams(window.location.search);
+    // Parse URL parameters from hash (for hash-based routing)
+    // Extract query string from hash: /#/callback?code=...&state=...
+    const hash = window.location.hash;
+    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
     const code = params.get('code');
     const state = params.get('state');
     const errorParam = params.get('error');

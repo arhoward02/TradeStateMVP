@@ -13,9 +13,16 @@ const getBaseUrl = () => {
     : 'https://live.tradovateapi.com/v1';
 };
 
+// Tradovate OAuth endpoints (correct URLs from their example repo)
 const OAUTH_ENDPOINTS = {
-  authorize: 'https://trader.tradovateapi.com/auth/oauthauthorize',
-  token: 'https://trader.tradovateapi.com/auth/oauthtoken',
+  authorize: 'https://trader.tradovate.com/oauth',
+  // Tradovate OAuth uses the authorization code directly as the access token
+  // No separate token exchange endpoint needed
+  token: () => {
+    return TRADOVATE_CONFIG.environment === 'demo'
+      ? 'https://demo.tradovateapi.com/v1/auth/oauthtokenrequest'
+      : 'https://live.tradovateapi.com/v1/auth/oauthtokenrequest';
+  },
 };
 
 /**
@@ -50,7 +57,7 @@ export function initiateLogin() {
 }
 
 /**
- * Handle OAuth callback and exchange authorization code for tokens
+ * Handle OAuth callback - Tradovate's custom OAuth token request
  */
 export async function handleCallback(code, state) {
   // Verify state to prevent CSRF attacks
@@ -63,37 +70,52 @@ export async function handleCallback(code, state) {
   // Clear stored state
   sessionStorage.removeItem('oauth_state');
   
-  // Exchange authorization code for access token
   try {
-    const response = await fetch(OAUTH_ENDPOINTS.token, {
+    // Tradovate's custom OAuth access token request
+    // For OAuth-linked accounts, the username is in format "Provider:ID"
+    // We need to get this from the user or store it after first auth
+    const oauthUsername = "Google:111638896328056101555"; // TODO: Get this dynamically
+    
+    const tokenUrl = `${getBaseUrl()}/auth/accesstokenrequest`;
+    const requestBody = {
+      name: oauthUsername, // OAuth-linked username
+      password: code, // Authorization code as password
+      appId: "TradeState",
+      appVersion: "1.0.0",
+      deviceId: generateDeviceId(),
+      cid: TRADOVATE_CONFIG.clientId,
+      sec: TRADOVATE_CONFIG.clientSecret,
+    };
+    
+    console.log('Tradovate token request:', { url: tokenUrl, body: requestBody });
+    
+    const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        client_id: TRADOVATE_CONFIG.clientId,
-        client_secret: TRADOVATE_CONFIG.clientSecret,
-        redirect_uri: TRADOVATE_CONFIG.redirectUri,
-      }),
+      body: JSON.stringify(requestBody),
     });
     
+    const responseText = await response.text();
+    console.log('Token response status:', response.status);
+    console.log('Token response:', responseText);
+    
     if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Token exchange failed: ${errorData}`);
+      throw new Error(`Token request failed: ${response.status} - ${responseText}`);
     }
     
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     
     // Calculate token expiration time
-    const expiresAt = Date.now() + (data.expires_in * 1000);
+    const expiresAt = Date.now() + (data.expirationTime || 8 * 60 * 60 * 1000);
     
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
+      accessToken: data.accessToken || data.token,
+      refreshToken: data.refreshToken,
       expiresAt: expiresAt,
-      tokenType: data.token_type,
+      tokenType: 'Bearer',
     };
   } catch (error) {
     console.error('OAuth callback error:', error);
@@ -102,11 +124,27 @@ export async function handleCallback(code, state) {
 }
 
 /**
+ * Generate a consistent device ID for this browser
+ */
+function generateDeviceId() {
+  let deviceId = localStorage.getItem('tradovate_device_id');
+  if (!deviceId) {
+    deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+    localStorage.setItem('tradovate_device_id', deviceId);
+  }
+  return deviceId;
+}
+
+/**
  * Refresh access token using refresh token
  */
 export async function refreshAccessToken(refreshToken) {
   try {
-    const response = await fetch(OAUTH_ENDPOINTS.token, {
+    const response = await fetch(OAUTH_ENDPOINTS.token(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -142,7 +180,10 @@ export async function refreshAccessToken(refreshToken) {
  */
 export async function fetchUserProfile(accessToken) {
   try {
-    const response = await fetch(`${getBaseUrl()}/user/syncrequest`, {
+    const url = `${getBaseUrl()}/user/syncrequest`;
+    console.log('Fetching user profile:', { url, accessToken });
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -150,11 +191,15 @@ export async function fetchUserProfile(accessToken) {
       },
     });
     
+    console.log('User profile response status:', response.status);
+    const responseText = await response.text();
+    console.log('User profile response:', responseText);
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch user profile');
+      throw new Error(`Failed to fetch user profile: ${response.status} - ${responseText}`);
     }
     
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     return data;
   } catch (error) {
     console.error('Fetch user profile error:', error);
