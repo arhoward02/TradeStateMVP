@@ -1,28 +1,16 @@
-// Tradovate OAuth Configuration
+// Import Supabase client
+import { getEdgeFunctionUrl } from '../supabase.js';
+
+// Tradovate OAuth Configuration (frontend only needs environment)
 const TRADOVATE_CONFIG = {
-  clientId: import.meta.env.VITE_TRADOVATE_CLIENT_ID,
-  clientSecret: import.meta.env.VITE_TRADOVATE_CLIENT_SECRET,
-  redirectUri: import.meta.env.VITE_TRADOVATE_REDIRECT_URI || 'http://localhost:3000/callback',
-  environment: import.meta.env.VITE_API_ENVIRONMENT || 'demo',
+  environment: import.meta.env.VITE_TRADOVATE_ENVIRONMENT || 'demo',
 };
 
-// Tradovate OAuth endpoints
-const getBaseUrl = () => {
-  return TRADOVATE_CONFIG.environment === 'demo'
-    ? 'https://demo.tradovateapi.com/v1'
-    : 'https://live.tradovateapi.com/v1';
-};
-
-// Tradovate OAuth endpoints (correct URLs from their example repo)
-const OAUTH_ENDPOINTS = {
-  authorize: 'https://trader.tradovate.com/oauth',
-  // Tradovate OAuth uses the authorization code directly as the access token
-  // No separate token exchange endpoint needed
-  token: () => {
-    return TRADOVATE_CONFIG.environment === 'demo'
-      ? 'https://demo.tradovateapi.com/v1/auth/oauthtokenrequest'
-      : 'https://live.tradovateapi.com/v1/auth/oauthtokenrequest';
-  },
+// Backend API endpoints (Supabase Edge Functions)
+const API_ENDPOINTS = {
+  oauthInitiate: getEdgeFunctionUrl('oauth-initiate'),
+  oauthCallback: getEdgeFunctionUrl('oauth-callback'),
+  tradovateProxy: getEdgeFunctionUrl('tradovate-proxy'),
 };
 
 /**
@@ -33,37 +21,51 @@ function generateState() {
 }
 
 /**
- * Initiate Tradovate OAuth login flow
+ * Initiate Tradovate OAuth login flow (via backend)
  */
-export function initiateLogin() {
-  const state = generateState();
-  
-  // Store state in sessionStorage for verification on callback
-  sessionStorage.setItem('oauth_state', state);
-  
-  // Build OAuth authorization URL
-  const params = new URLSearchParams({
-    client_id: TRADOVATE_CONFIG.clientId,
-    redirect_uri: TRADOVATE_CONFIG.redirectUri,
-    response_type: 'code',
-    state: state,
-    scope: 'trading', // Adjust scopes as needed
-  });
-  
-  const authUrl = `${OAUTH_ENDPOINTS.authorize}?${params.toString()}`;
-  
-  // Redirect to Tradovate OAuth page
-  window.location.href = authUrl;
+export async function initiateLogin() {
+  try {
+    // Call backend to get OAuth URL and state
+    const response = await fetch(API_ENDPOINTS.oauthInitiate, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to initiate OAuth');
+    }
+
+    const { authUrl, state } = await response.json();
+    
+    // Store state in sessionStorage for verification on callback
+    sessionStorage.setItem('oauth_state', state);
+    
+    // Redirect to Tradovate OAuth page
+    window.location.href = authUrl;
+  } catch (error) {
+    console.error('OAuth initiation error:', error);
+    throw error;
+  }
 }
 
 /**
- * Handle OAuth callback - Tradovate's custom OAuth token request
+ * Handle OAuth callback (via backend)
  */
-export async function handleCallback(code, state) {
+export async function handleCallback(code, state, oauthUsername) {
   // Verify state to prevent CSRF attacks
   const storedState = sessionStorage.getItem('oauth_state');
   
+  console.log('State verification:', { 
+    storedState, 
+    receivedState: state, 
+    match: storedState === state 
+  });
+  
   if (!storedState || storedState !== state) {
+    console.error('State mismatch!', { storedState, receivedState: state });
     throw new Error('Invalid state parameter - possible CSRF attack');
   }
   
@@ -71,51 +73,42 @@ export async function handleCallback(code, state) {
   sessionStorage.removeItem('oauth_state');
   
   try {
-    // Tradovate's custom OAuth access token request
-    // For OAuth-linked accounts, the username is in format "Provider:ID"
-    // We need to get this from the user or store it after first auth
-    const oauthUsername = "Google:111638896328056101555"; // TODO: Get this dynamically
-    
-    const tokenUrl = `${getBaseUrl()}/auth/accesstokenrequest`;
-    const requestBody = {
-      name: oauthUsername, // OAuth-linked username
-      password: code, // Authorization code as password
-      appId: "TradeState",
-      appVersion: "1.0.0",
-      deviceId: generateDeviceId(),
-      cid: TRADOVATE_CONFIG.clientId,
-      sec: TRADOVATE_CONFIG.clientSecret,
-    };
-    
-    console.log('Tradovate token request:', { url: tokenUrl, body: requestBody });
-    
-    const response = await fetch(tokenUrl, {
+    // Call backend to exchange code for tokens
+    // Backend handles client_secret securely
+    const response = await fetch(API_ENDPOINTS.oauthCallback, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        code,
+        state,
+        oauth_username: oauthUsername || localStorage.getItem('tradovate_oauth_username'),
+      }),
     });
     
     const responseText = await response.text();
-    console.log('Token response status:', response.status);
-    console.log('Token response:', responseText);
+    console.log('Backend callback response:', { status: response.status, body: responseText });
     
     if (!response.ok) {
-      throw new Error(`Token request failed: ${response.status} - ${responseText}`);
+      const errorData = JSON.parse(responseText);
+      throw new Error(errorData.error || 'OAuth callback failed');
     }
     
     const data = JSON.parse(responseText);
     
-    // Calculate token expiration time
-    const expiresAt = Date.now() + (data.expirationTime || 8 * 60 * 60 * 1000);
+    // Store oauth_username for future use
+    if (oauthUsername) {
+      localStorage.setItem('tradovate_oauth_username', oauthUsername);
+    }
     
+    // Return token data
     return {
-      accessToken: data.accessToken || data.token,
+      accessToken: data.accessToken,
       refreshToken: data.refreshToken,
-      expiresAt: expiresAt,
-      tokenType: 'Bearer',
+      expiresAt: new Date(data.expiresAt).getTime(),
+      tokenType: data.tokenType || 'Bearer',
+      userId: data.userId,
     };
   } catch (error) {
     console.error('OAuth callback error:', error);
@@ -123,21 +116,6 @@ export async function handleCallback(code, state) {
   }
 }
 
-/**
- * Generate a consistent device ID for this browser
- */
-function generateDeviceId() {
-  let deviceId = localStorage.getItem('tradovate_device_id');
-  if (!deviceId) {
-    deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-    localStorage.setItem('tradovate_device_id', deviceId);
-  }
-  return deviceId;
-}
 
 /**
  * Refresh access token using refresh token
@@ -176,12 +154,19 @@ export async function refreshAccessToken(refreshToken) {
 }
 
 /**
- * Fetch user profile from Tradovate API
+ * Fetch user profile from Tradovate API (via backend proxy)
  */
 export async function fetchUserProfile(accessToken) {
   try {
-    const url = `${getBaseUrl()}/user/syncrequest`;
-    console.log('Fetching user profile:', { url, accessToken });
+    if (!accessToken) {
+      throw new Error('Access token is undefined or null');
+    }
+    
+    // Use /auth/me endpoint as per Tradovate OAuth documentation
+    const endpoint = '/auth/me';
+    const url = `${API_ENDPOINTS.tradovateProxy}?endpoint=${encodeURIComponent(endpoint)}`;
+    
+    console.log('Fetching user profile via proxy:', { endpoint, accessToken: accessToken.substring(0, 10) + '...' });
     
     const response = await fetch(url, {
       method: 'GET',

@@ -1,206 +1,316 @@
-# TradeState - Brokerage Connection Platform
+# TradeState - Secure Trading Dashboard 🚀
 
-A modern frontend web application built with Svelte and Tailwind CSS that enables users to connect their brokerage accounts via OAuth 2.0. Currently supports Tradovate integration with plans to expand to additional brokerages.
+A modern, **production-ready** trading dashboard with secure Tradovate OAuth integration. Built with Svelte frontend and Supabase Edge Functions backend.
 
-## Features
+## 🎯 What Makes This Different?
 
-- 🔐 Secure OAuth 2.0 authentication with Tradovate
-- 🎨 Modern, responsive UI built with Tailwind CSS
-- ⚡ Fast and lightweight Svelte framework
-- 🔄 Token management with automatic refresh
-- 🛡️ Protected routes and authentication state management
-- 📱 Mobile-responsive design
-- 🚀 Ready for deployment to tradestate.io
+Unlike typical OAuth implementations that expose secrets in the browser, **TradeState uses a secure backend architecture** to protect your credentials:
 
-## Tech Stack
+### ❌ Insecure (Most Implementations)
+```javascript
+// Client-side - SECRET EXPOSED!
+fetch('https://tradovate.com/token', {
+  body: { client_secret: 'secret123' } // 🚨 Visible in browser!
+});
+```
 
-- **Framework**: Svelte 4.x
-- **Build Tool**: Vite 5.x
-- **Styling**: Tailwind CSS 3.x
-- **Routing**: svelte-spa-router
-- **Authentication**: OAuth 2.0 (Tradovate API)
+### ✅ Secure (TradeState)
+```javascript
+// Client-side - NO SECRETS
+fetch('https://your-backend/oauth-callback', {
+  body: { code: 'auth_code' } // ✅ Backend handles secret!
+});
+```
 
-## Prerequisites
+## ✨ Features
 
-- Node.js 18.x or higher
-- npm or yarn
-- Tradovate OAuth credentials (Client ID and Client Secret)
+### 🔐 Security First
+- ✅ **Server-side OAuth** - Client secrets never exposed to browser
+- ✅ **CSRF Protection** - Built-in state validation
+- ✅ **Encrypted Token Storage** - PostgreSQL database with RLS
+- ✅ **API Proxy** - All requests authenticated through backend
 
-## Getting Started
+### 🎨 Modern UI
+- Clean, responsive design
+- TradingView-inspired dark theme
+- Smooth animations and transitions
+- Mobile-friendly interface
 
-### 1. Install Dependencies
+### 🚀 Production Ready
+- Supabase Edge Functions (serverless)
+- PostgreSQL database
+- CDN-distributed globally
+- Free tier supports 500K requests/month
 
+## 📦 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | Svelte 4, Tailwind CSS, Vite |
+| **Backend** | Supabase Edge Functions (Deno) |
+| **Database** | PostgreSQL (Supabase) |
+| **API** | Tradovate REST API |
+| **Auth** | OAuth 2.0 (server-side) |
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐
+│   Frontend      │  Svelte + Tailwind
+│   (Browser)     │  No secrets exposed
+└────────┬────────┘
+         │ HTTPS
+         ▼
+┌─────────────────────────────────┐
+│  Supabase Edge Functions        │  OAuth flow handler
+│  (Backend - TypeScript/Deno)    │  Token exchange
+│                                 │  API proxy
+│  • oauth-initiate               │  Secure by default
+│  • oauth-callback               │
+│  • tradovate-proxy              │
+└────────┬─────────────┬──────────┘
+         │             │
+         ▼             ▼
+┌──────────────┐ ┌─────────────┐
+│  Tradovate   │ │ PostgreSQL  │  Token storage
+│  REST API    │ │ (Supabase)  │  Session mgmt
+└──────────────┘ └─────────────┘
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- Tradovate account (demo or live)
+- Supabase account (free tier works!)
+
+### 1. Clone & Install
 ```bash
+git clone https://github.com/arhoward02/TradeStateMVP.git
+cd TradeStateMVP
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 2. Set Up Supabase Backend
 
-Create a `.env` file in the root directory:
+**📖 Follow the complete guide:** [QUICKSTART_BACKEND.md](QUICKSTART_BACKEND.md)
 
-```env
-VITE_TRADOVATE_CLIENT_ID=your_client_id_here
-VITE_TRADOVATE_CLIENT_SECRET=your_client_secret_here
-VITE_TRADOVATE_REDIRECT_URI=http://localhost:3000/callback
-VITE_API_ENVIRONMENT=demo
+**Quick version:**
+```bash
+# Install Supabase CLI
+scoop install supabase  # Windows
+brew install supabase   # Mac
+
+# Login and setup
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
+
+# Set secrets
+supabase secrets set TRADOVATE_CLIENT_ID=your_id
+supabase secrets set TRADOVATE_CLIENT_SECRET=your_secret
+# ... (more in guide)
+
+# Deploy functions
+npm run supabase:deploy:win  # Windows
+npm run supabase:deploy      # Mac/Linux
 ```
 
-**Note**: 
-- Use `demo` environment for testing with Tradovate demo accounts
-- Use `live` environment for production trading accounts
-- Make sure your redirect URI matches the one configured in your Tradovate OAuth app
+### 3. Configure Frontend
 
-### 3. Obtain Tradovate OAuth Credentials
-
-1. Log in to your Tradovate account
-2. Navigate to the API/Developer section
-3. Create a new OAuth application
-4. Set the redirect URI to match your `.env` configuration
-5. Copy the Client ID and Client Secret to your `.env` file
+Create `.env` file:
+```bash
+VITE_SUPABASE_URL=https://xxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGc...
+VITE_TRADOVATE_ENVIRONMENT=demo
+VITE_TRADOVATE_REDIRECT_URI=http://localhost:3000/callback
+```
 
 ### 4. Run Development Server
-
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000) 🎉
 
-### 5. Build for Production
+## 📚 Complete Documentation
+
+| Document | Description |
+|----------|-------------|
+| [QUICKSTART_BACKEND.md](QUICKSTART_BACKEND.md) | 🚀 Get started in 15 minutes |
+| [SUPABASE_SETUP.md](SUPABASE_SETUP.md) | 🔧 Complete Supabase configuration |
+| [BACKEND_README.md](BACKEND_README.md) | 🏗️ Architecture and API docs |
+| [BACKEND_IMPLEMENTATION.md](BACKEND_IMPLEMENTATION.md) | 📝 What we built and why |
+| [ENV_VARIABLES.md](ENV_VARIABLES.md) | ⚙️ Configuration reference |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | 🌐 Production deployment |
+
+## 🔐 Security Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Client Secret Protection | ✅ | Stored server-side only |
+| CSRF Protection | ✅ | State parameter validation |
+| Token Encryption | ✅ | Encrypted database storage |
+| Row Level Security | ✅ | Multi-tenant isolation |
+| API Proxy | ✅ | Request/response logging |
+| Environment Isolation | ✅ | Separate dev/prod configs |
+
+## 🔄 OAuth Flow
+
+1. User clicks **"Connect to Tradovate"**
+2. Frontend requests OAuth URL from backend
+3. User redirected to Tradovate login
+4. User authenticates and approves
+5. Tradovate redirects back with auth code
+6. Frontend sends code to backend
+7. **Backend exchanges code + secret for tokens** 🔐
+8. Backend stores tokens in database
+9. Frontend receives access token
+10. User redirected to dashboard ✅
+
+## 📁 Project Structure
+
+```
+TradeStateMVP/
+├── src/                    # Frontend
+│   ├── components/         # UI components
+│   ├── routes/             # Page components
+│   ├── lib/
+│   │   ├── auth/           # OAuth logic
+│   │   └── supabase.js     # Supabase client
+│   └── stores/             # State management
+│
+├── supabase/               # Backend
+│   ├── functions/          # Edge Functions
+│   │   ├── oauth-initiate/
+│   │   ├── oauth-callback/
+│   │   └── tradovate-proxy/
+│   ├── migrations/         # Database schema
+│   └── deploy.ps1/sh       # Deployment scripts
+│
+├── docs/                   # Documentation
+└── package.json
+```
+
+## 📝 NPM Scripts
 
 ```bash
+# Development
+npm run dev                    # Start dev server
+
+# Build
+npm run build                  # Build for production
+npm run preview                # Preview production build
+
+# Supabase
+npm run supabase:login         # Login to Supabase
+npm run supabase:link          # Link to project
+npm run supabase:deploy:win    # Deploy functions (Windows)
+npm run supabase:deploy        # Deploy functions (Mac/Linux)
+npm run supabase:logs          # View function logs
+```
+
+## 💰 Cost Breakdown
+
+### Free Tier (Supabase)
+- ✅ 500K Edge Function calls/month (~16K/day)
+- ✅ 500MB PostgreSQL database
+- ✅ 2GB bandwidth/month
+- ✅ **Perfect for development & 100+ users!**
+
+### Production Scale
+- 10K users: ~$25/month (Supabase Pro)
+- 100K users: Custom pricing
+- Frontend hosting: $0-20/month (Vercel/Netlify)
+
+**Total for MVP: $0/month** 🎉
+
+## 🚀 Deployment
+
+### Frontend
+```bash
 npm run build
+# Deploy dist/ to Vercel, Netlify, etc.
 ```
 
-The production-ready files will be in the `dist` directory.
-
-## Project Structure
-
-```
-frontendmvp/
-├── public/              # Static assets
-├── src/
-│   ├── components/      # Reusable Svelte components
-│   │   └── Header.svelte
-│   ├── lib/
-│   │   └── auth/        # Authentication logic
-│   │       └── tradovate.js
-│   ├── routes/          # Page components
-│   │   ├── Login.svelte
-│   │   ├── Dashboard.svelte
-│   │   └── OAuthCallback.svelte
-│   ├── stores/          # Svelte stores for state management
-│   │   └── auth.js
-│   ├── App.svelte       # Main app component with routing
-│   ├── app.css          # Global styles with Tailwind
-│   └── main.js          # Application entry point
-├── index.html           # HTML template
-├── package.json         # Dependencies and scripts
-├── vite.config.js       # Vite configuration
-├── tailwind.config.js   # Tailwind CSS configuration
-└── README.md
+### Backend
+```bash
+npm run supabase:deploy
+# Edge Functions auto-deploy!
 ```
 
-## Key Features Explained
+See [DEPLOYMENT.md](DEPLOYMENT.md) for production setup.
 
-### OAuth 2.0 Flow
+## 🐛 Troubleshooting
 
-1. User clicks "Connect to Tradovate" on the login page
-2. Application redirects to Tradovate OAuth authorization page
-3. User approves the connection
-4. Tradovate redirects back to `/callback` with authorization code
-5. Application exchanges code for access and refresh tokens
-6. User is redirected to the dashboard
+### "Missing environment variables"
+- Check `.env` file exists with all required variables
+- Restart dev server after changes
 
-### Authentication State Management
+### "OAuth callback failed"
+```bash
+# Verify secrets are set
+supabase secrets list
 
-- Authentication state is managed using Svelte stores
-- Tokens are stored in localStorage for persistence
-- Automatic token refresh before expiration
-- Protected routes require authentication
+# Check logs
+npm run supabase:logs
+```
 
-### Route Protection
+### "CORS error"
+- Verify `VITE_SUPABASE_URL` in `.env`
+- Ensure Supabase anon key is correct
 
-Routes are protected using svelte-spa-router's `wrap` function with condition checking. Unauthenticated users are automatically redirected to the login page.
+**More:** [SUPABASE_SETUP.md#troubleshooting](SUPABASE_SETUP.md#troubleshooting)
 
-## Deployment
+## 🧪 Testing
 
-### Deploying to tradestate.io
+### Current Status
+- ✅ Manual testing workflow
+- ⏳ Unit tests (TODO)
+- ⏳ Integration tests (TODO)
+- ⏳ E2E tests (TODO)
 
-1. **Build the application**:
-   ```bash
-   npm run build
-   ```
+```bash
+# Manual testing
+npm run dev
+# Test OAuth flow in browser
+```
 
-2. **Update environment variables** for production:
-   - Set `VITE_TRADOVATE_REDIRECT_URI` to `https://tradestate.io/callback`
-   - Use `live` environment for production
+## 🤝 Contributing
 
-3. **Deploy the `dist` folder** to your hosting provider:
-   - **Vercel**: Connect your Git repository and Vercel will auto-deploy
-   - **Netlify**: Drag and drop the `dist` folder or connect via Git
-   - **AWS S3 + CloudFront**: Upload `dist` contents to S3 bucket
-   - **Other**: Upload `dist` contents to your web server
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
-4. **Configure DNS**:
-   - Point tradestate.io to your hosting provider
-   - Ensure HTTPS is enabled (most providers include free SSL)
+## 📄 License
 
-5. **Update Tradovate OAuth settings**:
-   - Add production redirect URI: `https://tradestate.io/callback`
-   - Ensure your production domain is authorized
+MIT License - see [LICENSE](LICENSE) for details
 
-## Environment Variables
+## 🙏 Acknowledgments
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_TRADOVATE_CLIENT_ID` | OAuth Client ID from Tradovate | `your_client_id` |
-| `VITE_TRADOVATE_CLIENT_SECRET` | OAuth Client Secret from Tradovate | `your_client_secret` |
-| `VITE_TRADOVATE_REDIRECT_URI` | Redirect URI after OAuth | `http://localhost:3000/callback` |
-| `VITE_API_ENVIRONMENT` | API environment (demo/live) | `demo` |
+- [Tradovate](https://tradovate.com) - Trading platform API
+- [Supabase](https://supabase.com) - Backend infrastructure
+- [Svelte](https://svelte.dev) - Frontend framework
+- [TailwindCSS](https://tailwindcss.com) - Styling framework
 
-## Future Enhancements
+## 📞 Support & Resources
 
-- [ ] Integration with Supabase backend
-- [ ] Support for additional brokerages (Interactive Brokers, TD Ameritrade, etc.)
-- [ ] Real-time market data display
-- [ ] Portfolio tracking and analytics
-- [ ] Trade execution capabilities
-- [ ] Multi-account management
-- [ ] Advanced charting and technical analysis
-
-## Security Considerations
-
-- OAuth tokens are stored in localStorage (consider using httpOnly cookies for production)
-- CSRF protection using state parameter in OAuth flow
-- Automatic token refresh to maintain secure sessions
-- Environment variables keep sensitive credentials out of source code
-
-## Troubleshooting
-
-### OAuth Redirect Issues
-- Ensure redirect URI in `.env` matches exactly with Tradovate OAuth app settings
-- Check that the redirect URI includes the correct protocol (http/https)
-
-### Token Expiration
-- Tokens automatically refresh 5 minutes before expiration
-- If refresh fails, user will be logged out and redirected to login
-
-### CORS Issues
-- Tradovate API should allow requests from your domain
-- Check Tradovate OAuth app settings for allowed origins
-
-## Support
-
-For issues or questions:
-- Check Tradovate API documentation: https://api.tradovate.com
-- Review OAuth 2.0 specification: https://oauth.net/2/
-
-## License
-
-Private - All rights reserved
+- 📖 [Full Documentation](QUICKSTART_BACKEND.md)
+- 🐛 [Report Issues](https://github.com/arhoward02/TradeStateMVP/issues)
+- 💬 [Discussions](https://github.com/arhoward02/TradeStateMVP/discussions)
+- 📧 Email: support@tradestate.io
 
 ---
 
-Built with ❤️ for TradeState
+## ⭐ Star History
 
+If this project helped you, please give it a star! ⭐
+
+---
+
+**Status:** ✅ Ready for deployment  
+**Version:** 2.0.0 (Supabase Backend)  
+**Last Updated:** December 5, 2024
+
+Built with ❤️ by the TradeState team

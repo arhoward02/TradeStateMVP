@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0" id="meta-refresh">
   <title>Redirecting...</title>
   <style>
     body {
@@ -40,25 +41,43 @@
   </div>
   
   <script>
-    // Get OAuth parameters from URL query string
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    const error = urlParams.get('error');
-    
-    // Build the hash-based URL for the Svelte app
-    let hashUrl = '/#/callback?';
-    
-    if (error) {
-      hashUrl += `error=${encodeURIComponent(error)}`;
-    } else if (code && state) {
-      hashUrl += `code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
-    } else {
-      hashUrl = '/#/login';
-    }
-    
-    // Redirect to the hash-based route
-    window.location.href = hashUrl;
+    (function() {
+      try {
+        // Get OAuth parameters from URL query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        
+        console.log('Callback.html loaded');
+        console.log('Current URL:', window.location.href);
+        console.log('Params:', { code, state, error });
+        
+        // Build the hash-based URL for the Svelte app
+        const baseUrl = window.location.origin; // e.g., http://localhost:3001
+        let hashUrl = `${baseUrl}/#/callback?`;
+        
+        if (error) {
+          hashUrl += `error=${encodeURIComponent(error)}`;
+        } else if (code && state) {
+          hashUrl += `code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+        } else {
+          hashUrl = `${baseUrl}/#/login`;
+        }
+        
+        console.log('Redirecting to:', hashUrl);
+        
+        // Set meta refresh as fallback
+        document.getElementById('meta-refresh').setAttribute('content', `0; url=${hashUrl}`);
+        
+        // Redirect to the hash-based route
+        window.location.replace(hashUrl);
+      } catch (err) {
+        console.error('Callback redirect error:', err);
+        // Fallback: redirect to home
+        window.location.replace(window.location.origin + '/#/login');
+      }
+    })();
   </script>
 </body>
 </html>

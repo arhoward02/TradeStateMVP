@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "supabase:login": "supabase login",
+    "supabase:link": "supabase link",
+    "supabase:deploy": "cd supabase && ./deploy.sh",
+    "supabase:deploy:win": "cd supabase && .\\deploy.ps1",
+    "supabase:logs": "supabase functions logs oauth-callback --follow"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
@@ -17,7 +22,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.86.2",
     "svelte-spa-router": "^4.0.1"
   }
 }
-

@@ -10,8 +10,21 @@
     }
   });
   
-  function handleLogin() {
-    initiateLogin();
+  let loading = false;
+  let error = null;
+  
+  async function handleLogin() {
+    loading = true;
+    error = null;
+    try {
+      // Clear any old OAuth state before starting new flow
+      sessionStorage.removeItem('oauth_state');
+      await initiateLogin();
+    } catch (err) {
+      console.error('Login error:', err);
+      error = err.message || 'Failed to initiate login';
+      loading = false;
+    }
   }
 </script>
 
@@ -32,14 +45,29 @@
       
       <!-- Login Button -->
       <div class="space-y-4">
+        {#if error}
+          <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-600">{error}</p>
+          </div>
+        {/if}
+        
         <button
           on:click={handleLogin}
+          disabled={loading}
           class="w-full btn-primary flex items-center justify-center space-x-3"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span>Connect to Tradovate</span>
+          {#if loading}
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Connecting...</span>
+          {:else}
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Connect to Tradovate</span>
+          {/if}
         </button>
         
         <div class="text-center">
