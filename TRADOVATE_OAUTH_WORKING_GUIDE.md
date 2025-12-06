@@ -263,6 +263,51 @@ TRADOVATE_ENVIRONMENT=demo
 
 ---
 
+## 11. Demo vs Live Environments
+
+### ✅ VERIFIED: Single OAuth App Handles Both!
+
+**Great News:** Your OAuth application automatically works with **BOTH** demo and live accounts using the **same credentials**!
+
+**What Works:**
+- ✅ Demo accounts (paper trading)
+- ✅ **Prop firm funded accounts** (TopStep, Earn2Trade, etc.)
+- ✅ **Live personal accounts**
+
+### How It Works
+
+Tradovate's OAuth system intelligently:
+1. Detects which account type the user is logging in with
+2. Routes to the correct API environment automatically
+3. Returns the appropriate access token
+
+**No special configuration needed!** 🎉
+
+### Account Types Explained
+
+**Demo Environment (uses demo API):**
+- Regular paper trading accounts
+- **Prop firm funded accounts** (they trade real money but use demo API)
+
+**Live Environment (uses live API):**
+- Personal brokerage accounts
+- Real money (non-prop firm) accounts
+
+### Implementation Note
+
+Even though you set `TRADOVATE_ENVIRONMENT=demo` in your config, the OAuth system handles routing correctly based on the actual account the user logs in with. Your backend's `environment` variable primarily affects which base URL to use for subsequent API calls, but the OAuth flow itself is environment-agnostic.
+
+### Best Practice
+
+Keep your current setup:
+```bash
+TRADOVATE_ENVIRONMENT=demo
+```
+
+The OAuth flow will automatically work for all account types. Users just log in with their account credentials, and Tradovate handles the rest!
+
+---
+
 ## Conclusion
 
 The key to making Tradovate OAuth work is:
@@ -272,6 +317,7 @@ The key to making Tradovate OAuth work is:
 4. Use **correct profile endpoint** (`/auth/me`)
 5. **No scope parameter**
 6. **Exact redirect URI match**
+7. **Understand demo vs live** for prop firm accounts
 
 Follow these rules and it will work reliably! ✅
 
