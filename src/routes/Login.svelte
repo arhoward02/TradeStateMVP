@@ -9,11 +9,21 @@
       window.location.hash = '/dashboard';
     }
 
-    // Create particles
-    createParticles();
+    // Create gradient mesh orbs
+    createGradientOrbs();
 
     // Setup scroll animations
     setupScrollAnimations();
+
+    // Setup stats counter animation
+    const statsObserver = new IntersectionObserver(animateStats, {
+      threshold: 0.5
+    });
+    
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) {
+      statsObserver.observe(statsSection);
+    }
   });
   
   let loading = false;
@@ -33,30 +43,58 @@
     }
   }
 
-  function createParticles() {
-    const container = document.querySelector('.particles-bg');
+  function createGradientOrbs() {
+    const container = document.querySelector('.mesh-gradient-bg');
     if (!container) return;
 
-    const particleCount = 30;
-    for (let i = 0; i < particleCount; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      
-      // Random size between 4px and 40px
-      const size = Math.random() * 36 + 4;
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      
-      // Random position
-      particle.style.left = `${Math.random() * 100}%`;
-      particle.style.top = `${Math.random() * 100}%`;
-      
-      // Random animation delay and duration
-      particle.style.animationDelay = `${Math.random() * 20}s`;
-      particle.style.animationDuration = `${15 + Math.random() * 10}s`;
-      
-      container.appendChild(particle);
+    // Create 3 large gradient orbs for mesh effect
+    const orbCount = 3;
+    for (let i = 0; i < orbCount; i++) {
+      const orb = document.createElement('div');
+      orb.className = `gradient-orb orb-${i + 1}`;
+      container.appendChild(orb);
     }
+  }
+
+  let statsAnimated = false;
+
+  function animateCounter(element, target, suffix = '', duration = 2000) {
+    const start = 0;
+    const increment = target / (duration / 16); // 60fps
+    let current = start;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        current = target;
+        clearInterval(timer);
+      }
+      
+      if (suffix === '%') {
+        element.textContent = current.toFixed(1) + suffix;
+      } else if (target >= 1000000) {
+        element.textContent = '$' + (current / 1000000).toFixed(0) + 'M+';
+      } else {
+        element.textContent = (current / 1000).toFixed(0) + 'K+';
+      }
+    }, 16);
+  }
+
+  function animateStats(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !statsAnimated) {
+        statsAnimated = true;
+        
+        // Animate each stat
+        const tradersEl = document.querySelector('.counter-traders');
+        const volumeEl = document.querySelector('.counter-volume');
+        const uptimeEl = document.querySelector('.counter-uptime');
+        
+        if (tradersEl) animateCounter(tradersEl, 10000, '', 2000);
+        if (volumeEl) animateCounter(volumeEl, 50000000, '', 2000);
+        if (uptimeEl) animateCounter(uptimeEl, 99.9, '%', 2000);
+      }
+    });
   }
 
   function setupScrollAnimations() {
@@ -86,20 +124,42 @@
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-  <!-- Animated Particles Background -->
-  <div class="particles-bg"></div>
+  <!-- Animated Gradient Mesh Background -->
+  <div class="mesh-gradient-bg"></div>
+
+  <!-- Animated Heartbeat EKG Lines -->
+  <div class="chart-lines">
+    <!-- Heartbeat Line 1 -->
+    <div class="chart-line" style="top: 20%;">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none">
+        <path d="M 0 50 L 200 50 L 220 50 L 225 30 L 235 70 L 245 20 L 255 50 L 270 50 L 400 50 L 420 50 L 425 35 L 435 65 L 445 25 L 455 50 L 470 50 L 600 50 L 620 50 L 625 32 L 635 68 L 645 22 L 655 50 L 670 50 L 800 50 L 820 50 L 825 33 L 835 67 L 845 23 L 855 50 L 870 50 L 1000 50 L 1020 50 L 1025 34 L 1035 66 L 1045 24 L 1055 50 L 1070 50 L 1200 50" />
+      </svg>
+    </div>
+    
+    <!-- Heartbeat Line 2 -->
+    <div class="chart-line line-2" style="top: 50%; animation-delay: 3s;">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none">
+        <path d="M 0 50 L 180 50 L 200 50 L 205 28 L 215 72 L 225 18 L 235 50 L 250 50 L 380 50 L 400 50 L 405 30 L 415 70 L 425 20 L 435 50 L 450 50 L 580 50 L 600 50 L 605 29 L 615 71 L 625 19 L 635 50 L 650 50 L 780 50 L 800 50 L 805 31 L 815 69 L 825 21 L 835 50 L 850 50 L 980 50 L 1000 50 L 1005 27 L 1015 73 L 1025 17 L 1035 50 L 1050 50 L 1200 50" />
+      </svg>
+    </div>
+    
+    <!-- Heartbeat Line 3 -->
+    <div class="chart-line line-3" style="top: 75%; animation-delay: 6s;">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none">
+        <path d="M 0 50 L 190 50 L 210 50 L 215 32 L 225 68 L 235 22 L 245 50 L 260 50 L 390 50 L 410 50 L 415 33 L 425 67 L 435 23 L 445 50 L 460 50 L 590 50 L 610 50 L 615 31 L 625 69 L 635 21 L 645 50 L 660 50 L 790 50 L 810 50 L 815 34 L 825 66 L 835 24 L 845 50 L 860 50 L 990 50 L 1010 50 L 1015 29 L 1025 71 L 1035 19 L 1045 50 L 1060 50 L 1200 50" />
+      </svg>
+    </div>
+  </div>
 
   <!-- Hero Section -->
   <section class="relative min-h-screen flex items-center justify-center px-6">
-    <div class="max-w-6xl mx-auto text-center">
+    <div class="max-w-6xl mx-auto text-center relative z-10">
       <div class="fade-in delay-100">
         <h1 class="text-6xl md:text-7xl font-bold mb-6 leading-tight">
-          <span class="gradient-text">Transform Your</span><br>
-          <span class="text-gray-900">Trading Experience</span>
+          <span class="gradient-text">TradeState</span>
         </h1>
-        <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Connect your brokerage accounts and access powerful analytics, real-time data, 
-          and unified portfolio management all in one place.
+        <p class="text-xl md:text-2xl text-gray-700 font-medium mb-8 max-w-2xl mx-auto">
+          Where your physiology meets your P&L
         </p>
         <button
           on:click={scrollToLogin}

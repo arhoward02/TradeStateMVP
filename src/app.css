@@ -104,37 +104,135 @@
   .delay-400 { animation-delay: 0.4s; }
   .delay-500 { animation-delay: 0.5s; }
 
-  /* Particle Background */
-  .particles-bg {
+  /* Animated Gradient Mesh Background */
+  .mesh-gradient-bg {
     position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+    background-size: 400% 400%;
+    opacity: 0.12;
+    animation: meshGradientFlow 20s ease infinite;
+    pointer-events: none;
   }
 
-  .particle {
+  @keyframes meshGradientFlow {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* Liquid Gradient Orbs */
+  .gradient-orb {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(14, 165, 233, 0.4), transparent);
-    animation: float 20s infinite ease-in-out;
+    filter: blur(40px);
+    animation: float 25s infinite ease-in-out;
+    opacity: 0.7;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle at center, rgba(14, 165, 233, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, transparent 70%);
+    top: 10%;
+    left: 5%;
+    animation-delay: 0s;
+  }
+
+  .orb-2 {
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.75) 0%, rgba(168, 85, 247, 0.35) 40%, transparent 70%);
+    top: 50%;
+    right: 10%;
+    animation-delay: 8s;
+  }
+
+  .orb-3 {
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.7) 0%, rgba(14, 165, 233, 0.3) 40%, transparent 70%);
+    bottom: 15%;
+    left: 30%;
+    animation-delay: 15s;
   }
 
   @keyframes float {
     0%, 100% {
       transform: translate(0, 0) scale(1);
-      opacity: 0.3;
     }
-    25% {
-      transform: translate(100px, -100px) scale(1.1);
-      opacity: 0.5;
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
     }
-    50% {
-      transform: translate(-50px, -200px) scale(0.9);
-      opacity: 0.3;
+    66% {
+      transform: translate(-20px, 30px) scale(0.9);
     }
-    75% {
-      transform: translate(-150px, -100px) scale(1.05);
-      opacity: 0.4;
+  }
+
+  /* Heartbeat EKG Lines */
+  .chart-lines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .chart-line {
+    position: absolute;
+    width: 100%;
+    height: 100px;
+    left: 0;
+  }
+
+  .chart-line svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation: heartbeatFlow 8s linear infinite;
+    will-change: transform, opacity;
+  }
+
+  .chart-line svg path {
+    fill: none;
+    stroke: rgba(14, 165, 233, 1);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8)) drop-shadow(0 0 15px rgba(14, 165, 233, 0.5));
+  }
+
+  .chart-line.line-2 svg path {
+    stroke: rgba(139, 92, 246, 1);
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 15px rgba(139, 92, 246, 0.5));
+  }
+
+  .chart-line.line-3 svg path {
+    stroke: rgba(59, 130, 246, 1);
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
+  }
+
+  @keyframes heartbeatFlow {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(100%);
     }
   }
 
@@ -158,6 +256,37 @@
   /* Counter Animation */
   .counter {
     @apply text-4xl font-bold gradient-text;
+    font-variant-numeric: tabular-nums;
+    transition: all 0.5s ease;
+  }
+
+  /* Trust Badges */
+  .trust-badge {
+    @apply bg-white/60 backdrop-blur-sm rounded-lg p-4 transition-all duration-300;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .trust-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .logo-grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-6 items-center;
+  }
+
+  .broker-logo {
+    @apply bg-white/70 backdrop-blur-sm rounded-lg p-4 h-20 flex items-center justify-center transition-all duration-300;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    filter: grayscale(100%);
+    opacity: 0.7;
+  }
+
+  .broker-logo:hover {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   }
 }
 
