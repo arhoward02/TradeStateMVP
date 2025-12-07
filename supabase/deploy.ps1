@@ -45,3 +45,4 @@ Write-Host "   - Check logs: supabase functions logs oauth-callback"
 Write-Host ""
 
 
+

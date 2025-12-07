@@ -3,6 +3,20 @@
   import { authStore } from '../stores/auth';
   import { onMount } from 'svelte';
   
+  let loading = false;
+  let error = null;
+  let taglineVisible = false;
+  let subheadlineVisible = false;
+  let metrics = [
+    { symbol: 'BTC', price: 43250.50, change: 1.2 },
+    { symbol: 'SPY', price: 478.32, change: 0.5 },
+    { symbol: 'QQQ', price: 412.18, change: -0.3 },
+    { symbol: 'ETH', price: 2650.75, change: 2.1 },
+    { symbol: 'AAPL', price: 195.42, change: 0.8 },
+    { symbol: 'TSLA', price: 248.67, change: -1.5 }
+  ];
+  let currentMetricIndex = 0;
+  
   // Check if already authenticated
   onMount(() => {
     if ($authStore.isAuthenticated) {
@@ -24,10 +38,27 @@
     if (statsSection) {
       statsObserver.observe(statsSection);
     }
+
+    // Animate tagline
+    setTimeout(() => {
+      taglineVisible = true;
+    }, 300);
+
+    // Animate subheadline
+    setTimeout(() => {
+      subheadlineVisible = true;
+    }, 800);
+
+    // Setup parallax effect
+    setupParallax();
+
+    // Rotate metrics ticker
+    const metricsInterval = setInterval(() => {
+      currentMetricIndex = (currentMetricIndex + 1) % metrics.length;
+    }, 3000);
+
+    return () => clearInterval(metricsInterval);
   });
-  
-  let loading = false;
-  let error = null;
   
   async function handleLogin() {
     loading = true;
@@ -121,6 +152,36 @@
       behavior: 'smooth' 
     });
   }
+
+  function setupParallax() {
+    const handleScroll = () => {
+      const scrolled = window.pageYOffset;
+      const parallaxElements = document.querySelectorAll('.parallax-layer');
+      parallaxElements.forEach((el, index) => {
+        const speed = 0.5 + (index * 0.1);
+        const yPos = -(scrolled * speed);
+        el.style.transform = `translate3d(0, ${yPos}px, 0)`;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }
+
+  function formatPrice(price) {
+    return price.toLocaleString('en-US', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  }
+
+  function getChangeColor(change) {
+    return change >= 0 ? 'text-green-500' : 'text-red-500';
+  }
+
+  function getChangeSymbol(change) {
+    return change >= 0 ? '+' : '';
+  }
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
@@ -199,25 +260,131 @@
     </div>
   </div>
 
+  <!-- Tech Grid Overlay -->
+  <div class="tech-grid-overlay"></div>
+
   <!-- Hero Section -->
-  <section class="relative min-h-screen flex items-center justify-center px-6">
-    <div class="max-w-6xl mx-auto text-center relative z-10">
-      <div class="fade-in delay-100">
-        <h1 class="text-6xl md:text-7xl font-bold mb-6 leading-tight">
-          <span class="gradient-text">TradeState</span>
-        </h1>
-        <p class="text-xl md:text-2xl text-gray-700 font-medium mb-8 max-w-2xl mx-auto">
-          Where your physiology meets your P&L
-        </p>
-        <button
-          on:click={scrollToLogin}
-          class="btn-glow inline-flex items-center space-x-3"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span>Get Started Free</span>
-        </button>
+  <section class="relative min-h-screen flex items-center justify-center px-6 py-24">
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <!-- Left Column: Content (Asymmetric Layout) -->
+        <div class="text-left lg:pl-8 relative">
+          <!-- Code Accent -->
+          <div class="code-accent mb-6">
+            <span class="text-sm font-mono text-gray-400">{'const trading = {'}</span>
+          </div>
+
+          <!-- Live Metrics Ticker -->
+          <div class="live-metrics-ticker mb-8">
+            <div class="inline-flex items-center space-x-3 px-4 py-2 glass-card rounded-lg">
+              <div class="live-badge">
+                <span class="live-dot"></span>
+                <span class="text-xs font-mono text-gray-600 ml-2">LIVE</span>
+              </div>
+              <div class="flex items-center space-x-4">
+                {#key currentMetricIndex}
+                  <div class="metric-item">
+                    <span class="text-xs font-mono text-gray-500">{metrics[currentMetricIndex].symbol}</span>
+                    <span class="text-sm font-semibold text-gray-900 ml-2">
+                      {'$' + formatPrice(metrics[currentMetricIndex].price)}
+                    </span>
+                    <span class="text-xs font-mono ml-2 {getChangeColor(metrics[currentMetricIndex].change)}">
+                      {getChangeSymbol(metrics[currentMetricIndex].change)}{metrics[currentMetricIndex].change.toFixed(2)}%
+                    </span>
+                  </div>
+                {/key}
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Title with Display Font -->
+          <div class="fade-in delay-100">
+            <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-[0.95] tracking-tight">
+              <span class="gradient-text display-font">TradeState</span>
+            </h1>
+            
+            <!-- Animated Tagline -->
+            <div class="mb-6">
+              <p class="text-xl md:text-2xl lg:text-3xl text-gray-700 font-medium mb-4 max-w-xl tagline-text {taglineVisible ? 'tagline-visible' : ''}">
+                Where your physiology meets your P&L
+              </p>
+              
+              <!-- Subheadline Value Proposition -->
+              <p class="text-base md:text-lg text-gray-600 max-w-xl subheadline-text {subheadlineVisible ? 'subheadline-visible' : ''}">
+                Real-time biometric insights integrated with your trading performance. 
+                <span class="font-mono text-primary-600">Optimize. Analyze. Dominate.</span>
+              </p>
+            </div>
+
+            <!-- CTA Button -->
+            <div class="mt-10">
+              <button
+                on:click={scrollToLogin}
+                class="btn-glow inline-flex items-center space-x-3"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Get Started Free</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Code Accent Bottom -->
+          <div class="code-accent mt-8">
+            <span class="text-sm font-mono text-gray-400">};</span>
+          </div>
+        </div>
+
+        <!-- Right Column: Chart Preview -->
+        <div class="relative lg:pr-8 parallax-layer">
+          <div class="chart-preview-container">
+            <!-- Mini Chart Preview -->
+            <div class="mini-chart-wrapper">
+              <svg class="mini-chart" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(14, 165, 233, 0.3);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(14, 165, 233, 0);stop-opacity:1" />
+                  </linearGradient>
+                </defs>
+                <path 
+                  class="chart-line" 
+                  d="M 0 150 Q 50 120, 100 100 T 200 80 T 300 60 T 400 40"
+                  fill="none"
+                  stroke="url(#chartGradient)"
+                  stroke-width="3"
+                />
+                <path 
+                  class="chart-fill" 
+                  d="M 0 150 Q 50 120, 100 100 T 200 80 T 300 60 T 400 40 L 400 200 L 0 200 Z"
+                  fill="url(#chartGradient)"
+                />
+              </svg>
+              
+              <!-- Status Indicator -->
+              <div class="absolute top-4 right-4">
+                <div class="live-badge">
+                  <span class="live-dot"></span>
+                  <span class="text-xs font-mono text-gray-600 ml-2">REAL-TIME</span>
+                </div>
+              </div>
+
+              <!-- Chart Data Points -->
+              <div class="chart-data-overlay">
+                <div class="data-point" style="left: 20%; top: 30%;">
+                  <span class="font-mono text-xs text-gray-500">$43,250</span>
+                </div>
+                <div class="data-point" style="left: 50%; top: 20%;">
+                  <span class="font-mono text-xs text-gray-500">$47,832</span>
+                </div>
+                <div class="data-point" style="left: 80%; top: 10%;">
+                  <span class="font-mono text-xs text-green-500">+12.3%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Scroll Indicator -->
@@ -230,7 +397,7 @@
   </section>
 
   <!-- Stats Bar -->
-  <section class="relative py-16 px-6">
+  <section class="relative py-16 px-6 stats-section">
     <div class="max-w-6xl mx-auto">
       <div class="glass-card rounded-2xl p-8 animate-on-scroll">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">

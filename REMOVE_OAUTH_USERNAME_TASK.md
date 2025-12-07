@@ -248,3 +248,4 @@ Or restore from checkpoint commit: `d69666c`
 **Risk Level:** Low (have checkpoint to rollback)  
 **Expected Outcome:** Improved UX matching TradeZella
 
+
