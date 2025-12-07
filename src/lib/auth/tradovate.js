@@ -53,8 +53,10 @@ export async function initiateLogin() {
 
 /**
  * Handle OAuth callback (via backend)
+ * Note: oauth_username not needed for standard OAuth flow
+ * The authorization code contains all necessary user information
  */
-export async function handleCallback(code, state, oauthUsername) {
+export async function handleCallback(code, state) {
   // Verify state to prevent CSRF attacks
   const storedState = sessionStorage.getItem('oauth_state');
   
@@ -83,7 +85,6 @@ export async function handleCallback(code, state, oauthUsername) {
       body: JSON.stringify({
         code,
         state,
-        oauth_username: oauthUsername || localStorage.getItem('tradovate_oauth_username'),
       }),
     });
     
@@ -96,11 +97,6 @@ export async function handleCallback(code, state, oauthUsername) {
     }
     
     const data = JSON.parse(responseText);
-    
-    // Store oauth_username for future use
-    if (oauthUsername) {
-      localStorage.setItem('tradovate_oauth_username', oauthUsername);
-    }
     
     // Return token data
     return {

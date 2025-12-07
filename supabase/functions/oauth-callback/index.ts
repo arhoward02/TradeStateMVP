@@ -33,7 +33,9 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { code, state, oauth_username } = await req.json();
+    // Note: oauth_username not needed for standard OAuth flow
+    // The authorization code contains all necessary user information
+    const { code, state } = await req.json();
 
     if (!code || !state) {
       throw new Error("Missing required parameters: code or state");
@@ -104,7 +106,6 @@ serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
       
       await supabase.from("tradovate_sessions").insert({
-        oauth_username: oauth_username,
         access_token: accessToken,
         refresh_token: refreshToken,
         expires_at: expiresAt.toISOString(),
