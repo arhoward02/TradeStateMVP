@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-dark-bg text-dark-text;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
@@ -22,29 +22,31 @@
     @apply bg-white rounded-lg shadow-lg p-6;
   }
 
-  /* Glassmorphism Effects */
+  /* Glassmorphism Effects - Dark Mode */
   .glass-card {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   }
 
   .glass-card-dark {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(15, 23, 42, 0.8);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.15);
   }
 
-  /* Gradient Text */
+  /* Gradient Text - Dark Mode */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-600 via-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-accent-cyan via-accent-cyan-light to-accent-purple bg-clip-text text-transparent;
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
   }
 
   .gradient-text-alt {
-    @apply bg-gradient-to-r from-blue-600 to-primary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-accent-purple to-accent-cyan bg-clip-text text-transparent;
   }
 
   /* Animated Gradient Background */
@@ -60,17 +62,18 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* Button with Glow Effect */
+  /* Button with Glow Effect - Dark Mode */
   .btn-glow {
-    @apply px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-primary-500/50 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-300;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3), 0 4px 6px rgba(0, 0, 0, 0.1);
+    @apply px-8 py-4 bg-accent-cyan text-white font-semibold rounded-lg shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-dark-bg transition-all duration-300;
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.4), 0 4px 6px rgba(0, 0, 0, 0.3);
   }
 
   .btn-glow:hover {
-    box-shadow: 0 0 30px rgba(14, 165, 233, 0.5), 0 10px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.6), 0 10px 20px rgba(0, 0, 0, 0.4);
+    background-color: #22d3ee;
   }
 
-  /* Feature Card with 3D Effect */
+  /* Feature Card with 3D Effect - Dark Mode */
   .feature-card {
     @apply glass-card rounded-xl p-6 transition-all duration-300;
     transform-style: preserve-3d;
@@ -78,7 +81,8 @@
 
   .feature-card:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(31, 38, 135, 0.2);
+    box-shadow: 0 20px 40px rgba(6, 182, 212, 0.2);
+    border-color: rgba(34, 211, 238, 0.3);
   }
 
   /* Fade In Animation */
@@ -105,15 +109,15 @@
   .delay-400 { animation-delay: 0.4s; }
   .delay-500 { animation-delay: 0.5s; }
 
-  /* Animated Gradient Mesh Background */
+  /* Animated Gradient Mesh Background - Dark Mode */
   .mesh-gradient-bg {
     position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 25%, #a855f7 50%, #c084fc 75%, #06b6d4 100%);
     background-size: 400% 400%;
-    opacity: 0.12;
+    opacity: 0.15;
     animation: meshGradientFlow 20s ease infinite;
     pointer-events: none;
   }
@@ -141,7 +145,7 @@
   .orb-1 {
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle at center, rgba(14, 165, 233, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, transparent 70%);
+    background: radial-gradient(circle at center, rgba(6, 182, 212, 0.6) 0%, rgba(34, 211, 238, 0.3) 40%, transparent 70%);
     top: 10%;
     left: 5%;
     animation-delay: 0s;
@@ -150,7 +154,7 @@
   .orb-2 {
     width: 350px;
     height: 350px;
-    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.75) 0%, rgba(168, 85, 247, 0.35) 40%, transparent 70%);
+    background: radial-gradient(circle at center, rgba(168, 85, 247, 0.6) 0%, rgba(192, 132, 252, 0.3) 40%, transparent 70%);
     top: 50%;
     right: 10%;
     animation-delay: 8s;
@@ -159,7 +163,7 @@
   .orb-3 {
     width: 380px;
     height: 380px;
-    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.7) 0%, rgba(14, 165, 233, 0.3) 40%, transparent 70%);
+    background: radial-gradient(circle at center, rgba(34, 211, 238, 0.5) 0%, rgba(6, 182, 212, 0.25) 40%, transparent 70%);
     bottom: 15%;
     left: 30%;
     animation-delay: 15s;
@@ -198,15 +202,15 @@
     width: 100%;
     height: 100%;
     animation: fadeEKG 8s ease-in-out infinite;
-    filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.6));
+    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.8));
   }
 
   .heartbeat-container.line-2 svg {
-    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.6));
+    filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.8));
   }
 
   .heartbeat-container.line-3 svg {
-    filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.6));
+    filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.8));
   }
 
   /* The continuous EKG path with spike built in */
@@ -312,7 +316,7 @@
     animation: gradientShift 8s ease infinite;
   }
 
-  /* Tech Grid Overlay */
+  /* Tech Grid Overlay - Dark Mode */
   .tech-grid-overlay {
     position: fixed;
     top: 0;
@@ -320,12 +324,12 @@
     width: 100%;
     height: 100%;
     background-image: 
-      linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+      linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
     background-size: 50px 50px;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.4;
+    opacity: 0.6;
   }
 
   /* Live Metrics Ticker */
@@ -418,11 +422,11 @@
     position: relative;
     width: 100%;
     height: 300px;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(30, 41, 59, 0.8);
     backdrop-filter: blur(20px);
     border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     padding: 1.5rem;
   }
@@ -468,9 +472,10 @@
   .data-point {
     position: absolute;
     padding: 0.25rem 0.5rem;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(30, 41, 59, 0.9);
     backdrop-filter: blur(10px);
     border-radius: 0.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.2);
     opacity: 0;
     animation: fadeInDataPoint 0.5s ease-out forwards;
   }
@@ -504,24 +509,109 @@
     transform-style: preserve-3d;
   }
 
-  /* Refined Gradient Transitions */
+  /* Refined Gradient Transitions - Dark Mode */
   .mesh-gradient-bg {
     background: linear-gradient(135deg, 
-      rgba(102, 126, 234, 0.15) 0%, 
-      rgba(118, 75, 162, 0.12) 25%, 
-      rgba(240, 147, 251, 0.1) 50%, 
-      rgba(79, 172, 254, 0.12) 75%, 
-      rgba(0, 242, 254, 0.15) 100%);
+      rgba(6, 182, 212, 0.2) 0%, 
+      rgba(34, 211, 238, 0.15) 25%, 
+      rgba(168, 85, 247, 0.12) 50%, 
+      rgba(192, 132, 252, 0.15) 75%, 
+      rgba(6, 182, 212, 0.2) 100%);
     background-size: 400% 400%;
-    opacity: 0.15;
+    opacity: 0.2;
     animation: meshGradientFlow 25s ease infinite;
   }
 
-  /* Enhanced 3D Depth Effects */
+  /* Enhanced 3D Depth Effects - Dark Mode */
   .mini-chart-wrapper:hover {
     transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 25px 70px rgba(14, 165, 233, 0.15);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 25px 70px rgba(6, 182, 212, 0.3);
+    border-color: rgba(34, 211, 238, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Particle System */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .particle-small {
+    width: 2px;
+    height: 2px;
+    background: rgba(6, 182, 212, 0.8);
+    animation: floatParticle 20s infinite ease-in-out;
+  }
+
+  .particle-medium {
+    width: 4px;
+    height: 4px;
+    background: rgba(168, 85, 247, 0.6);
+    animation: floatParticle 25s infinite ease-in-out;
+  }
+
+  .particle-large {
+    width: 6px;
+    height: 6px;
+    background: rgba(34, 211, 238, 0.5);
+    animation: floatParticle 30s infinite ease-in-out;
+  }
+
+  @keyframes floatParticle {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.3;
+    }
+    25% {
+      transform: translate(50px, -100px) scale(1.2);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translate(-30px, -200px) scale(0.8);
+      opacity: 0.4;
+    }
+    75% {
+      transform: translate(80px, -150px) scale(1.1);
+      opacity: 0.7;
+    }
+  }
+
+  /* Pulsing Circles */
+  .pulsing-circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(6, 182, 212, 0.3);
+    pointer-events: none;
+    animation: pulseCircle 4s infinite ease-in-out;
+  }
+
+  @keyframes pulseCircle {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.5);
+      opacity: 0.1;
+    }
+  }
+
+  /* Graph Transition Animation */
+  .graph-transition {
+    transition: opacity 1s ease-in-out, transform 0.5s ease-in-out;
+  }
+
+  .graph-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+  }
+
+  .graph-visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
