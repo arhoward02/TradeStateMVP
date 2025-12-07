@@ -176,7 +176,7 @@
     }
   }
 
-  /* Heartbeat EKG Lines */
+  /* Live Drawing Heartbeat EKG Lines */
   .chart-lines {
     position: absolute;
     width: 100%;
@@ -185,54 +185,62 @@
     z-index: 0;
   }
 
-  .chart-line {
+  .heartbeat-container {
     position: absolute;
     width: 100%;
     height: 100px;
     left: 0;
   }
 
-  .chart-line svg {
+  .heartbeat-container svg {
     position: absolute;
     width: 100%;
     height: 100%;
-    animation: heartbeatFlow 8s linear infinite;
-    will-change: transform, opacity;
+    animation: fadeEKG 8s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.6));
   }
 
-  .chart-line svg path {
-    fill: none;
-    stroke: rgba(14, 165, 233, 1);
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8)) drop-shadow(0 0 15px rgba(14, 165, 233, 0.5));
+  .heartbeat-container.line-2 svg {
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.6));
   }
 
-  .chart-line.line-2 svg path {
-    stroke: rgba(139, 92, 246, 1);
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 15px rgba(139, 92, 246, 0.5));
+  .heartbeat-container.line-3 svg {
+    filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.6));
   }
 
-  .chart-line.line-3 svg path {
-    stroke: rgba(59, 130, 246, 1);
-    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
+  /* The continuous EKG path with spike built in */
+  .ekg-path {
+    stroke-dasharray: 1800;
+    stroke-dashoffset: 1800;
+    animation: drawEKG 8s ease-in-out infinite;
   }
 
-  @keyframes heartbeatFlow {
+  /* Draw the line from left to right (reveals spike as it draws) */
+  @keyframes drawEKG {
+    0% {
+      stroke-dashoffset: 1800;
+    }
+    95% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Fade entire SVG in and out */
+  @keyframes fadeEKG {
     0% {
       opacity: 0;
-      transform: translateX(-100%);
     }
-    10% {
+    5% {
       opacity: 1;
     }
-    90% {
+    95% {
       opacity: 1;
     }
     100% {
       opacity: 0;
-      transform: translateX(100%);
     }
   }
 

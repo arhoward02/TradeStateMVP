@@ -127,26 +127,74 @@
   <!-- Animated Gradient Mesh Background -->
   <div class="mesh-gradient-bg"></div>
 
-  <!-- Animated Heartbeat EKG Lines -->
+  <!-- Animated Live Drawing Heartbeat EKG Lines -->
   <div class="chart-lines">
-    <!-- Heartbeat Line 1 -->
-    <div class="chart-line" style="top: 20%;">
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none">
-        <path d="M 0 50 L 200 50 L 220 50 L 225 30 L 235 70 L 245 20 L 255 50 L 270 50 L 400 50 L 420 50 L 425 35 L 435 65 L 445 25 L 455 50 L 470 50 L 600 50 L 620 50 L 625 32 L 635 68 L 645 22 L 655 50 L 670 50 L 800 50 L 820 50 L 825 33 L 835 67 L 845 23 L 855 50 L 870 50 L 1000 50 L 1020 50 L 1025 34 L 1035 66 L 1045 24 L 1055 50 L 1070 50 L 1200 50" />
+    <!-- Heartbeat Line 1 - Single continuous path with spike -->
+    <div class="heartbeat-container" style="top: 30%;">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" style="width: 100%; height: 100px;">
+        <defs>
+          <linearGradient id="ekgGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgba(14, 165, 233, 0);stop-opacity:0" />
+            <stop offset="10%" style="stop-color:rgba(14, 165, 233, 0.4);stop-opacity:1" />
+            <stop offset="40%" style="stop-color:rgba(14, 165, 233, 0.9);stop-opacity:1" />
+            <stop offset="60%" style="stop-color:rgba(14, 165, 233, 0.9);stop-opacity:1" />
+            <stop offset="90%" style="stop-color:rgba(59, 130, 246, 0.4);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(59, 130, 246, 0);stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        <path class="ekg-path" 
+              d="M 0 50 L 550 50 L 570 50 L 580 20 L 595 80 L 610 10 L 625 50 L 650 50 L 1200 50" 
+              fill="none" 
+              stroke="url(#ekgGradient1)" 
+              stroke-width="2.5" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" />
       </svg>
     </div>
     
     <!-- Heartbeat Line 2 -->
-    <div class="chart-line line-2" style="top: 50%; animation-delay: 3s;">
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none">
-        <path d="M 0 50 L 180 50 L 200 50 L 205 28 L 215 72 L 225 18 L 235 50 L 250 50 L 380 50 L 400 50 L 405 30 L 415 70 L 425 20 L 435 50 L 450 50 L 580 50 L 600 50 L 605 29 L 615 71 L 625 19 L 635 50 L 650 50 L 780 50 L 800 50 L 805 31 L 815 69 L 825 21 L 835 50 L 850 50 L 980 50 L 1000 50 L 1005 27 L 1015 73 L 1025 17 L 1035 50 L 1050 50 L 1200 50" />
+    <div class="heartbeat-container line-2" style="top: 55%;">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" style="width: 100%; height: 100px; animation-delay: 4s;">
+        <defs>
+          <linearGradient id="ekgGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgba(139, 92, 246, 0);stop-opacity:0" />
+            <stop offset="10%" style="stop-color:rgba(139, 92, 246, 0.4);stop-opacity:1" />
+            <stop offset="40%" style="stop-color:rgba(139, 92, 246, 0.9);stop-opacity:1" />
+            <stop offset="60%" style="stop-color:rgba(139, 92, 246, 0.9);stop-opacity:1" />
+            <stop offset="90%" style="stop-color:rgba(168, 85, 247, 0.4);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(168, 85, 247, 0);stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        <path class="ekg-path" 
+              d="M 0 50 L 555 50 L 575 50 L 585 22 L 600 78 L 615 12 L 630 50 L 655 50 L 1200 50" 
+              fill="none" 
+              stroke="url(#ekgGradient2)" 
+              stroke-width="2.5" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" />
       </svg>
     </div>
     
     <!-- Heartbeat Line 3 -->
-    <div class="chart-line line-3" style="top: 75%; animation-delay: 6s;">
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none">
-        <path d="M 0 50 L 190 50 L 210 50 L 215 32 L 225 68 L 235 22 L 245 50 L 260 50 L 390 50 L 410 50 L 415 33 L 425 67 L 435 23 L 445 50 L 460 50 L 590 50 L 610 50 L 615 31 L 625 69 L 635 21 L 645 50 L 660 50 L 790 50 L 810 50 L 815 34 L 825 66 L 835 24 L 845 50 L 860 50 L 990 50 L 1010 50 L 1015 29 L 1025 71 L 1035 19 L 1045 50 L 1060 50 L 1200 50" />
+    <div class="heartbeat-container line-3" style="top: 75%;">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" style="width: 100%; height: 100px; animation-delay: 8s;">
+        <defs>
+          <linearGradient id="ekgGradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgba(59, 130, 246, 0);stop-opacity:0" />
+            <stop offset="10%" style="stop-color:rgba(59, 130, 246, 0.4);stop-opacity:1" />
+            <stop offset="40%" style="stop-color:rgba(59, 130, 246, 0.9);stop-opacity:1" />
+            <stop offset="60%" style="stop-color:rgba(59, 130, 246, 0.9);stop-opacity:1" />
+            <stop offset="90%" style="stop-color:rgba(14, 165, 233, 0.4);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(14, 165, 233, 0);stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        <path class="ekg-path" 
+              d="M 0 50 L 560 50 L 580 50 L 590 24 L 605 76 L 620 14 L 635 50 L 660 50 L 1200 50" 
+              fill="none" 
+              stroke="url(#ekgGradient3)" 
+              stroke-width="2.5" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" />
       </svg>
     </div>
   </div>
