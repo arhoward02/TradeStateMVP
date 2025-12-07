@@ -21,55 +21,80 @@
   // Graph data structures
   const graphs = [
     {
-      id: 'pnl-hrv',
-      title: 'PnL vs HRV',
+      id: 'hrv-pnl',
+      title: 'HRV vs PnL',
       xAxis: 'HRV',
       yAxis: 'P&L ($)',
-      path: 'M 40 160 L 80 140 L 120 120 L 160 100 L 200 80 L 240 70 L 280 65 L 320 60 L 360 55',
-      fillPath: 'M 40 160 L 80 140 L 120 120 L 160 100 L 200 80 L 240 70 L 280 65 L 320 60 L 360 55 L 360 200 L 40 200 Z',
-      gradientId: 'gradientPnlHrv',
+      path: 'M 40 55 L 80 60 L 120 70 L 160 85 L 200 105 L 240 125 L 280 145 L 320 160 L 360 170',
+      fillPath: 'M 40 55 L 80 60 L 120 70 L 160 85 L 200 105 L 240 125 L 280 145 L 320 160 L 360 170 L 360 200 L 40 200 Z',
+      gradientId: 'gradientHrvPnl',
       gradientColors: ['rgba(6, 182, 212, 0.8)', 'rgba(34, 211, 238, 0.3)', 'rgba(6, 182, 212, 0)'],
       lineColor: '#06b6d4',
       dataPoints: [
-        { x: 80, y: 140, label: 'HRV: 45', value: '$2,500' },
-        { x: 200, y: 80, label: 'HRV: 30', value: '$8,200' },
-        { x: 320, y: 60, label: 'HRV: 20', value: '$12,400' }
+        { x: 80, y: 60, label: 'HRV: 20', value: '$12,400' },
+        { x: 200, y: 105, label: 'HRV: 30', value: '$8,200' },
+        { x: 320, y: 160, label: 'HRV: 45', value: '$2,500' }
       ],
-      description: 'Lower HRV correlates with better P&L'
+      description: 'Lower HRV correlates with better P&L',
+      tooltip: 'Traders with HRV < 30 average 40% higher returns',
+      performanceMetric: '+40% Returns'
     },
     {
-      id: 'sleep-hrv',
-      title: 'Sleep Score vs HRV',
-      xAxis: 'HRV',
-      yAxis: 'Sleep Score',
-      path: 'M 40 180 L 80 160 L 120 140 L 160 120 L 200 100 L 240 85 L 280 75 L 320 70 L 360 65',
-      fillPath: 'M 40 180 L 80 160 L 120 140 L 160 120 L 200 100 L 240 85 L 280 75 L 320 70 L 360 65 L 360 200 L 40 200 Z',
-      gradientId: 'gradientSleepHrv',
-      gradientColors: ['rgba(168, 85, 247, 0.8)', 'rgba(192, 132, 252, 0.3)', 'rgba(168, 85, 247, 0)'],
-      lineColor: '#a855f7',
+      id: 'sleep-pnl',
+      title: 'Sleep vs PnL',
+      xAxis: 'Sleep Score (hrs)',
+      yAxis: 'P&L ($)',
+      path: 'M 40 170 L 80 160 L 120 140 L 160 115 L 200 90 L 240 70 L 280 60 L 320 55 L 360 50',
+      fillPath: 'M 40 170 L 80 160 L 120 140 L 160 115 L 200 90 L 240 70 L 280 60 L 320 55 L 360 50 L 360 200 L 40 200 Z',
+      gradientId: 'gradientSleepPnl',
+      gradientColors: ['rgba(16, 185, 129, 0.8)', 'rgba(52, 211, 153, 0.3)', 'rgba(16, 185, 129, 0)'],
+      lineColor: '#10b981',
       dataPoints: [
-        { x: 100, y: 150, label: 'HRV: 50', value: 'Score: 72' },
-        { x: 200, y: 100, label: 'HRV: 35', value: 'Score: 88' },
-        { x: 320, y: 70, label: 'HRV: 25', value: 'Score: 92' }
+        { x: 80, y: 160, label: '5 hrs', value: '$2,800' },
+        { x: 200, y: 90, label: '7 hrs', value: '$8,500' },
+        { x: 320, y: 55, label: '9 hrs', value: '$13,200' }
       ],
-      description: 'Higher HRV improves sleep quality'
+      description: 'Better sleep quality leads to higher performance',
+      tooltip: '8+ hours of sleep correlates with 28% better P&L',
+      performanceMetric: '+28% P&L'
     },
     {
       id: 'stress-pnl',
       title: 'Stress vs PnL',
       xAxis: 'Stress Level',
       yAxis: 'P&L ($)',
-      path: 'M 40 60 L 80 70 L 120 85 L 160 100 L 200 110 L 240 125 L 280 140 L 320 155 L 360 170',
-      fillPath: 'M 40 60 L 80 70 L 120 85 L 160 100 L 200 110 L 240 125 L 280 140 L 320 155 L 360 170 L 360 200 L 40 200 Z',
+      path: 'M 40 55 L 80 65 L 120 80 L 160 100 L 200 120 L 240 140 L 280 155 L 320 165 L 360 172',
+      fillPath: 'M 40 55 L 80 65 L 120 80 L 160 100 L 200 120 L 240 140 L 280 155 L 320 165 L 360 172 L 360 200 L 40 200 Z',
       gradientId: 'gradientStressPnl',
       gradientColors: ['rgba(251, 146, 60, 0.8)', 'rgba(249, 115, 22, 0.3)', 'rgba(251, 146, 60, 0)'],
       lineColor: '#fb923c',
       dataPoints: [
-        { x: 80, y: 70, label: 'Stress: Low', value: '$11,500' },
-        { x: 200, y: 110, label: 'Stress: Med', value: '$6,200' },
-        { x: 320, y: 155, label: 'Stress: High', value: '$1,800' }
+        { x: 80, y: 65, label: 'Stress: Low', value: '$11,500' },
+        { x: 200, y: 120, label: 'Stress: Med', value: '$6,200' },
+        { x: 320, y: 165, label: 'Stress: High', value: '$1,800' }
       ],
-      description: 'Lower stress leads to better performance'
+      description: 'Lower stress leads to better performance',
+      tooltip: 'Low stress traders close 35% more winning positions',
+      performanceMetric: '+35% Win Rate'
+    },
+    {
+      id: 'sleep-winrate',
+      title: 'Sleep vs Win Rate',
+      xAxis: 'Sleep Score (hrs)',
+      yAxis: 'Win Rate (%)',
+      path: 'M 40 165 L 80 155 L 120 135 L 160 110 L 200 85 L 240 65 L 280 55 L 320 48 L 360 45',
+      fillPath: 'M 40 165 L 80 155 L 120 135 L 160 110 L 200 85 L 240 65 L 280 55 L 320 48 L 360 45 L 360 200 L 40 200 Z',
+      gradientId: 'gradientSleepWinrate',
+      gradientColors: ['rgba(20, 184, 166, 0.8)', 'rgba(94, 234, 212, 0.3)', 'rgba(20, 184, 166, 0)'],
+      lineColor: '#14b8a6',
+      dataPoints: [
+        { x: 80, y: 155, label: '5 hrs', value: '42%' },
+        { x: 200, y: 85, label: '7 hrs', value: '68%' },
+        { x: 320, y: 48, label: '9 hrs', value: '81%' }
+      ],
+      description: 'Quality sleep improves win rate',
+      tooltip: 'Quality sleep improves decision accuracy by 45%',
+      performanceMetric: '+45% Accuracy'
     }
   ];
   
@@ -456,76 +481,100 @@
             <div class="mini-chart-wrapper">
               {#each graphs as graph, index}
                 <div class="graph-transition {index === currentGraphIndex ? 'graph-visible' : 'graph-hidden'}" style="position: {index === currentGraphIndex ? 'relative' : 'absolute'}; top: 0; left: 0; width: 100%; height: 100%;">
-                  <svg class="mini-chart" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                      <linearGradient id={graph.gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:{graph.gradientColors[0]};stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:{graph.gradientColors[1]};stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:{graph.gradientColors[2]};stop-opacity:1" />
-                      </linearGradient>
-                    </defs>
-                    
-                    <!-- Grid lines -->
-                    <g opacity="0.2" stroke="#94a3b8" stroke-width="0.5">
-                      <line x1="40" y1="20" x2="40" y2="180" />
-                      <line x1="40" y1="180" x2="360" y2="180" />
-                      {#each Array(5) as _, i}
-                        <line x1="40" y1={20 + i * 40} x2="360" y2={20 + i * 40} />
-                      {/each}
-                    </g>
-                    
-                    <!-- Chart fill -->
-                    <path 
-                      class="chart-fill" 
-                      d={graph.fillPath}
-                      fill={'url(#' + graph.gradientId + ')'}
-                    />
-                    
-                    <!-- Chart line -->
-                    <path 
-                      class="chart-line" 
-                      d={graph.path}
-                      fill="none"
-                      stroke={graph.lineColor}
-                      stroke-width="3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    
-                    <!-- Data points -->
-                    {#each graph.dataPoints as point}
-                      <circle 
-                        cx={point.x} 
-                        cy={point.y} 
-                        r="4" 
-                        fill={graph.lineColor}
-                        class="data-point"
-                        style="animation-delay: {graph.dataPoints.indexOf(point) * 0.3 + 0.5}s"
+                  <!-- Chart Container with Hover Effect -->
+                  <div class="chart-hover-container group">
+                    <svg class="mini-chart" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
+                      <defs>
+                        <linearGradient id={graph.gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" style="stop-color:{graph.gradientColors[0]};stop-opacity:1" />
+                          <stop offset="50%" style="stop-color:{graph.gradientColors[1]};stop-opacity:1" />
+                          <stop offset="100%" style="stop-color:{graph.gradientColors[2]};stop-opacity:1" />
+                        </linearGradient>
+                      </defs>
+                      
+                      <!-- Grid lines -->
+                      <g opacity="0.2" stroke="#94a3b8" stroke-width="0.5">
+                        <line x1="40" y1="20" x2="40" y2="180" />
+                        <line x1="40" y1="180" x2="360" y2="180" />
+                        {#each Array(5) as _, i}
+                          <line x1="40" y1={20 + i * 40} x2="360" y2={20 + i * 40} />
+                        {/each}
+                      </g>
+                      
+                      <!-- Chart fill -->
+                      <path 
+                        class="chart-fill" 
+                        d={graph.fillPath}
+                        fill={'url(#' + graph.gradientId + ')'}
                       />
-                    {/each}
+                      
+                      <!-- Chart line with animation -->
+                      <path 
+                        class="chart-line chart-line-animated" 
+                        d={graph.path}
+                        fill="none"
+                        stroke={graph.lineColor}
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      
+                      <!-- Data points with tooltips -->
+                      {#each graph.dataPoints as point, pointIndex}
+                        <g class="data-point-group">
+                          <circle 
+                            cx={point.x} 
+                            cy={point.y} 
+                            r="4" 
+                            fill={graph.lineColor}
+                            class="data-point data-point-animated"
+                            style="animation-delay: {pointIndex * 0.3 + 0.5}s"
+                          />
+                          <!-- Larger invisible circle for better hover area -->
+                          <circle 
+                            cx={point.x} 
+                            cy={point.y} 
+                            r="12" 
+                            fill="transparent"
+                            class="data-point-hover"
+                            style="cursor: pointer;"
+                          />
+                        </g>
+                      {/each}
+                      
+                      <!-- Axis labels -->
+                      <text x="200" y="195" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="10">
+                        {graph.xAxis}
+                      </text>
+                      <text x="15" y="100" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="10" transform="rotate(-90 15 100)">
+                        {graph.yAxis}
+                      </text>
+                      
+                      <!-- Title -->
+                      <text x="200" y="15" text-anchor="middle" fill="#f1f5f9" font-family="sans-serif" font-size="12" font-weight="600">
+                        {graph.title}
+                      </text>
+                    </svg>
                     
-                    <!-- Axis labels -->
-                    <text x="200" y="195" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="10">
-                      {graph.xAxis}
-                    </text>
-                    <text x="15" y="100" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="10" transform="rotate(-90 15 100)">
-                      {graph.yAxis}
-                    </text>
+                    <!-- Data point labels with tooltips -->
+                    <div class="chart-data-overlay">
+                      {#each graph.dataPoints as point, pointIndex}
+                        <div class="data-point-label tooltip-trigger" style="left: {point.x - 30}px; top: {point.y - 40}px;">
+                          <div class="text-xs font-mono text-dark-text-muted">{point.label}</div>
+                          <div class="text-xs font-semibold" style="color: {graph.lineColor}">{point.value}</div>
+                          
+                          <!-- Tooltip on hover -->
+                          <div class="chart-tooltip">
+                            <p class="text-xs">{graph.tooltip}</p>
+                          </div>
+                        </div>
+                      {/each}
+                    </div>
                     
-                    <!-- Title -->
-                    <text x="200" y="15" text-anchor="middle" fill="#f1f5f9" font-family="sans-serif" font-size="12" font-weight="600">
-                      {graph.title}
-                    </text>
-                  </svg>
-                  
-                  <!-- Data point labels -->
-                  <div class="chart-data-overlay">
-                    {#each graph.dataPoints as point}
-                      <div class="data-point" style="left: {point.x - 30}px; top: {point.y - 40}px;">
-                        <div class="text-xs font-mono text-dark-text-muted">{point.label}</div>
-                        <div class="text-xs font-semibold" style="color: {graph.lineColor}">{point.value}</div>
-                      </div>
-                    {/each}
+                    <!-- Performance Metric Badge (shows on hover) -->
+                    <div class="performance-badge">
+                      <span class="text-sm font-bold">{graph.performanceMetric}</span>
+                    </div>
                   </div>
                 </div>
               {/each}
