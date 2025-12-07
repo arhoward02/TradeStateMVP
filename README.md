@@ -2,6 +2,8 @@
 
 A modern, **production-ready** trading dashboard with secure Tradovate OAuth integration. Built with Svelte frontend and Supabase Edge Functions backend.
 
+<!-- Force rebuild for production OAuth - 2025-12-07 -->
+
 ## 🎯 What Makes This Different?
 
 Unlike typical OAuth implementations that expose secrets in the browser, **TradeState uses a secure backend architecture** to protect your credentials:
