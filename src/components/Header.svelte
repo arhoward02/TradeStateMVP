@@ -25,6 +25,9 @@
         <a href="#/dashboard" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
           Dashboard
         </a>
+        <a href="/study.html" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+          Study Gallery
+        </a>
         <span class="text-gray-400 font-medium cursor-not-allowed">
           Portfolio
         </span>
