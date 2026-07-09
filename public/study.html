@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trade Study Gallery</title>
+<style>
+  :root{
+    --bg:#0a0f1e;
+    --panel:#0f1728;
+    --panel-2:#131d33;
+    --line:#1e293f;
+    --text:#e6e9f0;
+    --muted:#7c879c;
+    --teal:#2dd4c8;
+    --blue:#4f7df3;
+    --purple:#7c6ef2;
+    --red:#ff5266;
+    --amber:#e0a94c;
+    --mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    background-image:
+      linear-gradient(rgba(79,125,243,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,125,243,.045) 1px, transparent 1px);
+    background-size:36px 36px;
+  }
+  ::selection{background:var(--teal);color:#04140f;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;gap:16px;
+    padding:14px 20px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(15,23,40,.9),rgba(10,15,30,.9));
+    backdrop-filter:blur(6px);
+    position:sticky;top:0;z-index:20;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:baseline;gap:8px;margin-right:auto;}
+  .brand .tick{
+    font-family:var(--mono);font-size:11px;color:var(--teal);
+    letter-spacing:2px;border:1px solid var(--teal);
+    padding:2px 6px;border-radius:3px;
+  }
+  .brand h1{
+    font-size:17px;font-weight:700;margin:0;letter-spacing:.2px;
+    background:linear-gradient(90deg,var(--blue),var(--purple));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .brand small{color:var(--muted);font-family:var(--mono);font-size:11px;}
+
+  .search{
+    background:var(--panel-2);border:1px solid var(--line);
+    border-radius:6px;padding:8px 12px;color:var(--text);
+    font-family:var(--mono);font-size:13px;min-width:200px;
+    outline:none;
+  }
+  .search:focus{border-color:var(--blue);}
+  .stat{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;}
+  .stat b{color:var(--teal);font-weight:600;}
+
+  .btn{
+    background:linear-gradient(90deg,var(--blue),var(--purple));
+    color:#fff;border:none;border-radius:6px;
+    padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer;
+    font-family:var(--sans);
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.ghost{
+    background:transparent;color:var(--text);border:1px solid var(--line);
+  }
+  .btn.ghost:hover{border-color:var(--muted);}
+  .btn.small{padding:5px 9px;font-size:11px;}
+
+  /* ---------- layout ---------- */
+  .layout{display:flex;align-items:flex-start;}
+  .sidebar{
+    width:230px;flex:none;padding:18px 16px;border-right:1px solid var(--line);
+    position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;
+  }
+  .sidebar h3{
+    font-size:11px;text-transform:uppercase;letter-spacing:1.5px;
+    color:var(--muted);margin:18px 0 8px;
+  }
+  .sidebar h3:first-child{margin-top:0;}
+  .tagchip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    border:1px solid var(--line);border-radius:20px;
+    padding:4px 10px;margin:0 6px 6px 0;cursor:pointer;
+  }
+  .tagchip.active{border-color:var(--teal);color:var(--teal);background:rgba(45,212,200,.1);}
+  .tagchip .n{color:inherit;opacity:.6;}
+  .empty-hint{color:var(--muted);font-size:12px;line-height:1.6;}
+
+  .main{flex:1;min-width:0;padding:20px 24px 80px;}
+
+  /* ---------- upload zone ---------- */
+  .uploader{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:18px;margin-bottom:26px;
+  }
+  .uploader-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;
+  }
+  .drop{
+    border:1.5px dashed var(--line);border-radius:8px;
+    min-height:130px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:6px;cursor:pointer;
+    position:relative;overflow:hidden;background:var(--panel-2);
+    transition:border-color .15s;
+  }
+  .drop.drag{border-color:var(--teal);background:rgba(45,212,200,.08);}
+  .drop:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(79,125,243,.25);}
+  .drop.filled{border-style:solid;padding:0;}
+  .drop img{width:100%;height:130px;object-fit:cover;display:block;}
+  .drop .label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  .drop .sub{font-size:11px;color:var(--muted);opacity:.7;}
+  .drop input[type=file]{display:none;}
+  .drop .clear{
+    position:absolute;top:6px;right:6px;background:rgba(10,14,20,.8);
+    color:var(--text);border:1px solid var(--line);border-radius:4px;
+    font-size:11px;padding:2px 6px;cursor:pointer;
+  }
+
+  .fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+  .fields.wide{grid-template-columns:1fr;}
+  .field label{
+    display:block;font-family:var(--mono);font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;
+  }
+  .field input,.field textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:6px;padding:8px 10px;color:var(--text);font-family:var(--sans);
+    font-size:13px;outline:none;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--blue);}
+  .field textarea{resize:vertical;min-height:44px;font-family:var(--sans);}
+  .uploader-foot{display:flex;justify-content:space-between;align-items:center;}
+  .msg{font-size:12px;color:var(--amber);font-family:var(--mono);}
+
+  /* ---------- gallery ---------- */
+  .grid{display:flex;flex-direction:column;gap:14px;}
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    overflow:hidden;
+  }
+  .card-head{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .card-head .ticker{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--teal);}
+  .card-head .idx{font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .card-head .date{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto;}
+  .card-head .del{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:5px;font-size:11px;padding:4px 8px;cursor:pointer;
+  }
+  .card-head .del:hover{border-color:var(--red);color:var(--red);}
+  .pair{display:grid;grid-template-columns:1fr 1fr;}
+  .pair .pane{position:relative;border-right:1px solid var(--line);background:#000;}
+  .pair .pane:last-child{border-right:none;}
+  .pair .pane img{width:100%;display:block;cursor:zoom-in;max-height:520px;object-fit:contain;background:#000;}
+  .pane .tag{
+    position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:10px;
+    background:rgba(10,14,20,.75);border:1px solid var(--line);border-radius:4px;
+    padding:2px 6px;color:var(--muted);letter-spacing:1px;
+  }
+  .pane.skel{display:flex;align-items:center;justify-content:center;min-height:220px;color:var(--muted);font-family:var(--mono);font-size:11px;}
+  .card-foot{padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .card-foot .note{font-size:12px;color:var(--muted);flex:1;min-width:200px;}
+  .card-foot .chip{
+    font-family:var(--mono);font-size:10px;color:var(--amber);
+    border:1px solid var(--line);border-radius:12px;padding:2px 8px;
+  }
+
+  .no-results{color:var(--muted);text-align:center;padding:60px 0;font-family:var(--mono);font-size:13px;}
+
+  /* ---------- lightbox ---------- */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(4,6,10,.92);z-index:100;
+    display:none;align-items:center;justify-content:center;padding:30px;
+    cursor:zoom-out;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:96vw;max-height:92vh;object-fit:contain;border:1px solid var(--line);border-radius:4px;}
+
+  @media (max-width:820px){
+    .sidebar{display:none;}
+    .uploader-grid{grid-template-columns:1fr;}
+    .fields{grid-template-columns:1fr 1fr;}
+    .pair{grid-template-columns:1fr;}
+    .pair .pane{border-right:none;border-bottom:1px solid var(--line);}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="tick">STUDY</span>
+    <h1>Trade Study Gallery</h1>
+    <small>stock + index side-by-side</small>
+  </div>
+  <span class="stat" id="statLine"></span>
+  <input class="search" id="searchBox" placeholder="filter by ticker, tag, note…">
+  <button class="btn ghost small" id="exportBtn">Export JSON</button>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <h3>Tags</h3>
+    <div id="tagList"><div class="empty-hint">Tags you add will show up here as filters.</div></div>
+    <h3>Setup</h3>
+    <div class="empty-hint">
+      Drop a chart of the stock and a chart of the index (QQQ/SPY) for the same moment, add a ticker + tags, and it's saved to this browser permanently — reload anytime, images and all.
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="uploader">
+      <div class="uploader-grid">
+        <div class="drop" id="dropStock">
+          <div class="label">Stock chart</div>
+          <div class="sub">drop, click, or paste</div>
+          <input type="file" accept="image/*" id="fileStock">
+        </div>
+        <div class="drop" id="dropIndex">
+          <div class="label">Index chart</div>
+          <div class="sub">drop, click, or paste</div>
+          <input type="file" accept="image/*" id="fileIndex">
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label>Ticker</label>
+          <input id="fTicker" placeholder="e.g. NVTS" style="text-transform:uppercase">
+        </div>
+        <div class="field">
+          <label>Index</label>
+          <input id="fIndex" placeholder="QQQ" value="QQQ" style="text-transform:uppercase">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input id="fDate" type="date">
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label>Tags (comma separated)</label>
+          <input id="fTags" placeholder="breakout, leading group, RS new high">
+        </div>
+      </div>
+      <div class="fields wide">
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="fNotes" placeholder="what you're studying about this setup…"></textarea>
+        </div>
+      </div>
+      <div class="uploader-foot">
+        <span class="msg" id="uploadMsg"></span>
+        <button class="btn" id="saveBtn">Save study</button>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="no-results" id="noResults" style="display:none;">No studies match that filter.</div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox"><img id="lightboxImg"></div>
+
+<script>
+const els = {
+  dropStock: document.getElementById('dropStock'),
+  dropIndex: document.getElementById('dropIndex'),
+  fileStock: document.getElementById('fileStock'),
+  fileIndex: document.getElementById('fileIndex'),
+  fTicker: document.getElementById('fTicker'),
+  fIndex: document.getElementById('fIndex'),
+  fDate: document.getElementById('fDate'),
+  fTags: document.getElementById('fTags'),
+  fNotes: document.getElementById('fNotes'),
+  saveBtn: document.getElementById('saveBtn'),
+  uploadMsg: document.getElementById('uploadMsg'),
+  grid: document.getElementById('grid'),
+  noResults: document.getElementById('noResults'),
+  tagList: document.getElementById('tagList'),
+  searchBox: document.getElementById('searchBox'),
+  statLine: document.getElementById('statLine'),
+  lightbox: document.getElementById('lightbox'),
+  lightboxImg: document.getElementById('lightboxImg'),
+  exportBtn: document.getElementById('exportBtn'),
+};
+
+let pendingStock = null; // {name, dataUrl}
+let pendingIndex = null;
+let index = [];          // metadata list, newest first
+let activeTag = null;
+let imgCache = {};        // id -> {stock, index} data urls, lazy loaded
+
+els.fDate.valueAsDate = new Date();
+
+// ---------- storage helpers (IndexedDB) ----------
+const DB_NAME = 'tradeStudyGallery';
+const STORE = 'kv';
+let dbPromise = null;
+
+function openDB(){
+  if(dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = ()=>{
+      req.result.createObjectStore(STORE, {keyPath:'key'});
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+  return dbPromise;
+}
+async function idbGet(key){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(key);
+    req.onsuccess = ()=> resolve(req.result ? req.result.value : null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSet(key, value){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({key, value});
+    tx.oncomplete = ()=> resolve(true);
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+async function idbDelete(key){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(key);
+    tx.oncomplete = ()=> resolve(true);
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+
+async function loadIndex(){
+  try{
+    const v = await idbGet('library-index');
+    index = v ? JSON.parse(v) : [];
+  }catch(e){ index = []; }
+}
+async function saveIndex(){
+  try{
+    await idbSet('library-index', JSON.stringify(index));
+  }catch(e){ console.error('save index failed', e); }
+}
+async function getImages(id){
+  if(imgCache[id]) return imgCache[id];
+  try{
+    const v = await idbGet('img:'+id);
+    const parsed = v ? JSON.parse(v) : {stock:null, index:null};
+    imgCache[id] = parsed;
+    return parsed;
+  }catch(e){
+    return {stock:null, index:null};
+  }
+}
+
+// ---------- drop zones ----------
+function wireDrop(zone, fileInput, setPending, labelText){
+  zone.addEventListener('click', ()=> fileInput.click());
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev, e=>{
+    e.preventDefault(); zone.classList.add('drag');
+  }));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev, e=>{
+    e.preventDefault(); zone.classList.remove('drag');
+  }));
+  zone.addEventListener('drop', e=>{
+    const f = e.dataTransfer.files[0];
+    if(f) handleFile(f, setPending, zone, labelText);
+  });
+  fileInput.addEventListener('change', e=>{
+    const f = e.target.files[0];
+    if(f) handleFile(f, setPending, zone, labelText);
+  });
+}
+function handleFile(file, setPending, zone, labelText){
+  if(!file.type.startsWith('image/')){ return; }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    setPending(reader.result);
+    zone.classList.add('filled');
+    zone.innerHTML = `<img src="${reader.result}"><button class="clear" type="button">clear</button>`;
+    zone.querySelector('.clear').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      setPending(null);
+      zone.classList.remove('filled');
+      zone.innerHTML = `<div class="label">${labelText}</div><div class="sub">drop, click, or paste</div>`;
+    });
+  };
+  reader.readAsDataURL(file);
+}
+wireDrop(els.dropStock, els.fileStock, v=>pendingStock=v, 'Stock chart');
+wireDrop(els.dropIndex, els.fileIndex, v=>pendingIndex=v, 'Index chart');
+
+// ---------- paste support ----------
+// Make zones focusable so a click-then-paste targets that specific zone.
+els.dropStock.setAttribute('tabindex', '0');
+els.dropIndex.setAttribute('tabindex', '0');
+
+function handlePasteEvent(e){
+  const items = (e.clipboardData || window.clipboardData)?.items;
+  if(!items) return;
+  const imageItem = Array.from(items).find(it => it.type && it.type.startsWith('image/'));
+  if(!imageItem) return;
+  e.preventDefault();
+  const file = imageItem.getAsFile();
+  if(!file) return;
+
+  // If a specific drop zone is focused, target that one. Otherwise fill
+  // whichever slot (stock, then index) is still empty.
+  const active = document.activeElement;
+  if(active === els.dropStock){
+    handleFile(file, v=>pendingStock=v, els.dropStock, 'Stock chart');
+  } else if(active === els.dropIndex){
+    handleFile(file, v=>pendingIndex=v, els.dropIndex, 'Index chart');
+  } else if(!pendingStock){
+    handleFile(file, v=>pendingStock=v, els.dropStock, 'Stock chart');
+    flash('Pasted into Stock chart.');
+  } else if(!pendingIndex){
+    handleFile(file, v=>pendingIndex=v, els.dropIndex, 'Index chart');
+    flash('Pasted into Index chart.');
+  } else {
+    flash('Both slots full — clear one first.');
+  }
+}
+document.addEventListener('paste', handlePasteEvent);
+els.dropStock.addEventListener('paste', handlePasteEvent);
+els.dropIndex.addEventListener('paste', handlePasteEvent);
+
+// ---------- save ----------
+els.saveBtn.addEventListener('click', async ()=>{
+  const ticker = els.fTicker.value.trim().toUpperCase();
+  if(!ticker){ flash('Enter a ticker.'); return; }
+  if(!pendingStock || !pendingIndex){ flash('Add both chart images.'); return; }
+
+  const id = 's' + Date.now() + Math.random().toString(36).slice(2,7);
+  const tags = els.fTags.value.split(',').map(t=>t.trim()).filter(Boolean);
+  const entry = {
+    id,
+    ticker,
+    indexTicker: (els.fIndex.value.trim() || 'QQQ').toUpperCase(),
+    date: els.fDate.value || new Date().toISOString().slice(0,10),
+    tags,
+    notes: els.fNotes.value.trim(),
+    created: Date.now()
+  };
+
+  els.saveBtn.disabled = true; flash('Saving…');
+  try{
+    await idbSet('img:'+id, JSON.stringify({stock:pendingStock, index:pendingIndex}));
+    index.unshift(entry);
+    await saveIndex();
+    imgCache[id] = {stock:pendingStock, index:pendingIndex};
+    resetForm();
+    render();
+    flash('Saved.');
+  }catch(e){
+    console.error(e);
+    flash('Storage error — image may be too large.');
+  }
+  els.saveBtn.disabled = false;
+});
+
+function resetForm(){
+  pendingStock = null; pendingIndex = null;
+  els.dropStock.classList.remove('filled');
+  els.dropStock.innerHTML = `<div class="label">Stock chart</div><div class="sub">drop, click, or paste</div>`;
+  els.dropIndex.classList.remove('filled');
+  els.dropIndex.innerHTML = `<div class="label">Index chart</div><div class="sub">drop, click, or paste</div>`;
+  els.fTicker.value=''; els.fTags.value=''; els.fNotes.value='';
+  els.fIndex.value='QQQ';
+  els.fDate.valueAsDate = new Date();
+}
+function flash(msg){
+  els.uploadMsg.textContent = msg;
+  setTimeout(()=>{ if(els.uploadMsg.textContent===msg) els.uploadMsg.textContent=''; }, 2500);
+}
+
+// ---------- delete ----------
+async function deleteEntry(id){
+  if(!confirm('Delete this study? This cannot be undone.')) return;
+  try{ await idbDelete('img:'+id); }catch(e){}
+  index = index.filter(e=>e.id!==id);
+  delete imgCache[id];
+  await saveIndex();
+  render();
+}
+
+// ---------- tags sidebar ----------
+function renderTags(){
+  const counts = {};
+  index.forEach(e => (e.tags||[]).forEach(t=>counts[t]=(counts[t]||0)+1));
+  const tagNames = Object.keys(counts).sort();
+  if(tagNames.length===0){
+    els.tagList.innerHTML = `<div class="empty-hint">Tags you add will show up here as filters.</div>`;
+    return;
+  }
+  els.tagList.innerHTML = tagNames.map(t=>
+    `<span class="tagchip ${activeTag===t?'active':''}" data-tag="${t}">${t} <span class="n">${counts[t]}</span></span>`
+  ).join('');
+  els.tagList.querySelectorAll('.tagchip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const t = chip.dataset.tag;
+      activeTag = activeTag===t ? null : t;
+      renderTags(); render();
+    });
+  });
+}
+
+// ---------- gallery ----------
+function matchesFilter(e, q){
+  if(activeTag && !(e.tags||[]).includes(activeTag)) return false;
+  if(!q) return true;
+  const hay = [e.ticker, e.indexTicker, e.notes, ...(e.tags||[])].join(' ').toLowerCase();
+  return hay.includes(q);
+}
+
+async function render(){
+  const q = els.searchBox.value.trim().toLowerCase();
+  const list = index.filter(e=>matchesFilter(e,q));
+  els.statLine.textContent = `${list.length} / ${index.length} studies`;
+  els.noResults.style.display = list.length ? 'none' : 'block';
+  els.grid.innerHTML = '';
+
+  list.forEach(entry=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head">
+        <span class="ticker">${entry.ticker}</span>
+        <span class="idx">vs ${entry.indexTicker}</span>
+        <span class="date">${entry.date}</span>
+        <button class="del" data-id="${entry.id}">delete</button>
+      </div>
+      <div class="pair">
+        <div class="pane skel" data-role="stock">loading…</div>
+        <div class="pane skel" data-role="index">loading…</div>
+      </div>
+      <div class="card-foot">
+        ${entry.notes ? `<span class="note">${escapeHtml(entry.notes)}</span>` : ''}
+        ${(entry.tags||[]).map(t=>`<span class="chip">${escapeHtml(t)}</span>`).join('')}
+      </div>
+    `;
+    card.querySelector('.del').addEventListener('click', ()=>deleteEntry(entry.id));
+    els.grid.appendChild(card);
+    observeCard(card, entry);
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// lazy-load images as cards enter viewport
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(async obs=>{
+    if(!obs.isIntersecting) return;
+    io.unobserve(obs.target);
+    const id = obs.target.dataset.entryId;
+    const imgs = await getImages(id);
+    const stockPane = obs.target.querySelector('[data-role="stock"]');
+    const indexPane = obs.target.querySelector('[data-role="index"]');
+    fillPane(stockPane, imgs.stock, 'STOCK');
+    fillPane(indexPane, imgs.index, 'INDEX');
+  });
+}, {rootMargin:'400px'});
+
+function observeCard(card, entry){
+  card.dataset.entryId = entry.id;
+  io.observe(card);
+}
+function fillPane(pane, dataUrl, label){
+  if(!dataUrl){ pane.textContent = 'missing image'; return; }
+  pane.className = 'pane';
+  pane.innerHTML = `<span class="tag">${label}</span><img src="${dataUrl}">`;
+  pane.querySelector('img').addEventListener('click', ()=> openLightbox(dataUrl));
+}
+
+// ---------- lightbox ----------
+function openLightbox(src){
+  els.lightboxImg.src = src;
+  els.lightbox.classList.add('open');
+}
+els.lightbox.addEventListener('click', ()=> els.lightbox.classList.remove('open'));
+
+// ---------- search ----------
+let searchTimer;
+els.searchBox.addEventListener('input', ()=>{
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(render, 150);
+});
+
+// ---------- export ----------
+els.exportBtn.addEventListener('click', async ()=>{
+  const full = [];
+  for(const e of index){
+    const imgs = await getImages(e.id);
+    full.push({...e, stockImage: imgs.stock, indexImage: imgs.index});
+  }
+  const blob = new Blob([JSON.stringify(full, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'trade-study-gallery-export.json';
+  a.click();
+});
+
+// ---------- init ----------
+(async function init(){
+  await loadIndex();
+  renderTags();
+  render();
+})();
+</script>
+</body>
+</html>
