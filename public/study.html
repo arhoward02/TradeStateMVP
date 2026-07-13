@@ -62,6 +62,13 @@
   .search:focus{border-color:var(--blue);}
   .stat{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;}
   .stat b{color:var(--teal);font-weight:600;}
+  .sync-banner{
+    width:100%;font-family:var(--mono);font-size:11px;color:var(--muted);
+    padding:6px 20px;border-bottom:1px solid var(--line);
+    background:rgba(15,23,40,.75);
+  }
+  .sync-banner.cloud{color:var(--teal);}
+  .sync-banner.local{color:var(--amber);}
 
   .btn{
     background:linear-gradient(90deg,var(--blue),var(--purple));
@@ -208,9 +215,12 @@
   </div>
   <span class="stat" id="statLine"></span>
   <input class="search" id="searchBox" placeholder="filter by ticker, tag, note…">
+  <button class="btn ghost small" id="importBtn">Import JSON</button>
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
   <button class="btn ghost small" id="exportBtn">Export JSON</button>
   <a href="/" class="btn ghost small" style="text-decoration:none;display:inline-flex;align-items:center;">Back to TradeState</a>
 </div>
+<div class="sync-banner local" id="syncBanner">Loading sync status…</div>
 
 <div class="layout">
   <div class="sidebar">
@@ -218,7 +228,7 @@
     <div id="tagList"><div class="empty-hint">Tags you add will show up here as filters.</div></div>
     <h3>Setup</h3>
     <div class="empty-hint">
-      Drop a chart of the stock and a chart of the index (QQQ/SPY) for the same moment, add a ticker + tags, and it's saved to this browser permanently — reload anytime, images and all.
+      Drop a chart of the stock and a chart of the index (QQQ/SPY) for the same moment, add a ticker + tags, and save. Log in with Google on TradeState to back up studies to the cloud.
     </div>
   </div>
 
@@ -275,7 +285,20 @@
 
 <div class="lightbox" id="lightbox"><img id="lightboxImg"></div>
 
+<script src="/study-config.js"></script>
+<script src="/js/supabase-umd.js"></script>
 <script>
+  // Safety net: if the module script hangs, never leave the banner stuck.
+  setTimeout(function () {
+    var el = document.getElementById('syncBanner');
+    if (el && /Loading sync status/i.test(el.textContent || '')) {
+      el.innerHTML = 'Local only — page script stalled. Hard refresh (Ctrl+Shift+R). <a href="/#/login" style="color:var(--teal);">Log in</a>';
+      el.className = 'sync-banner local';
+    }
+  }, 2500);
+</script>
+<script type="module">
+import { cloud } from './js/study-cloud.js';
 const els = {
   dropStock: document.getElementById('dropStock'),
   dropIndex: document.getElementById('dropIndex'),
@@ -296,6 +319,9 @@ const els = {
   lightbox: document.getElementById('lightbox'),
   lightboxImg: document.getElementById('lightboxImg'),
   exportBtn: document.getElementById('exportBtn'),
+  importBtn: document.getElementById('importBtn'),
+  importFile: document.getElementById('importFile'),
+  syncBanner: document.getElementById('syncBanner'),
 };
 
 let pendingStock = null; // {name, dataUrl}
@@ -362,8 +388,47 @@ async function saveIndex(){
     await idbSet('library-index', JSON.stringify(index));
   }catch(e){ console.error('save index failed', e); }
 }
-async function getImages(id){
-  if(imgCache[id]) return imgCache[id];
+async function refreshSyncedUrls(entry){
+  if(!entry?.synced) return entry;
+  const [stockImageUrl, indexImageUrl] = await Promise.all([
+    entry.stockImagePath
+      ? cloud.signedUrlForPath(entry.stockImagePath)
+      : Promise.resolve(entry.stockImageUrl || null),
+    entry.indexImagePath
+      ? cloud.signedUrlForPath(entry.indexImagePath)
+      : Promise.resolve(entry.indexImageUrl || null),
+  ]);
+  entry.stockImageUrl = stockImageUrl || entry.stockImageUrl || null;
+  entry.indexImageUrl = indexImageUrl || entry.indexImageUrl || null;
+  return entry;
+}
+
+async function getImages(id, { forceResign = false } = {}){
+  if(!forceResign && imgCache[id]) return imgCache[id];
+  const entry = index.find(e => e.id === id);
+  if(entry?.synced){
+    // Prefer fresh signed URLs from storage paths; fall back to cached URLs.
+    if(entry.stockImagePath || entry.indexImagePath){
+      await refreshSyncedUrls(entry);
+      const idx = index.findIndex(e => e.id === id);
+      if(idx >= 0){
+        index[idx] = {
+          ...index[idx],
+          stockImageUrl: entry.stockImageUrl,
+          indexImageUrl: entry.indexImageUrl,
+          stockImagePath: entry.stockImagePath,
+          indexImagePath: entry.indexImagePath,
+        };
+        saveIndex().catch(()=>{});
+      }
+    }
+    const imgs = {
+      stock: entry.stockImageUrl || null,
+      index: entry.indexImageUrl || null,
+    };
+    imgCache[id] = imgs;
+    return imgs;
+  }
   try{
     const v = await idbGet('img:'+id);
     const parsed = v ? JSON.parse(v) : {stock:null, index:null};
@@ -372,6 +437,167 @@ async function getImages(id){
   }catch(e){
     return {stock:null, index:null};
   }
+}
+
+async function updateSyncBanner(){
+  try{
+    const status = await Promise.race([
+      cloud.getStatus(),
+      new Promise((resolve) => setTimeout(() => resolve({
+        mode: 'local',
+        label: 'Local only — login check timed out. Try refreshing or log in again.',
+        loginUrl: '/#/login',
+      }), 4000)),
+    ]);
+    if(status.loginUrl){
+      els.syncBanner.innerHTML = `${status.label} <a href="${status.loginUrl}" style="color:var(--teal);">Log in</a>`;
+    } else {
+      els.syncBanner.textContent = status.label;
+    }
+    els.syncBanner.className = `sync-banner ${status.mode}`;
+  }catch(e){
+    console.error(e);
+    els.syncBanner.innerHTML = `Local only — could not check login. <a href="/#/login" style="color:var(--teal);">Log in</a>`;
+    els.syncBanner.className = 'sync-banner local';
+  }
+}
+
+function cacheEntryImages(id, stock, index){
+  imgCache[id] = { stock, index };
+}
+
+async function cacheEntryLocally(id, stock, index){
+  cacheEntryImages(id, stock, index);
+  if(stock && index){
+    await idbSet('img:'+id, JSON.stringify({ stock, index }));
+  }
+}
+
+function normalizeImportedEntry(raw){
+  return {
+    id: raw.id || ('s' + Date.now() + Math.random().toString(36).slice(2,7)),
+    ticker: String(raw.ticker || '').trim().toUpperCase(),
+    indexTicker: String(raw.indexTicker || raw.index_ticker || 'QQQ').trim().toUpperCase(),
+    date: raw.date || raw.trade_date || new Date().toISOString().slice(0,10),
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    notes: String(raw.notes || '').trim(),
+    created: raw.created || Date.now(),
+    stockImage: raw.stockImage || raw.stock_image || null,
+    indexImage: raw.indexImage || raw.index_image || null,
+  };
+}
+
+async function toDataUrl(src){
+  if(!src) return null;
+  if(src.startsWith('data:')) return src;
+  const response = await fetch(src);
+  if(!response.ok) throw new Error('Could not load image for backup');
+  const blob = await response.blob();
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function toIndexEntry(saved){
+  return cloud.mapSyncedEntry(saved);
+}
+
+async function persistEntry(entry, stockImage, indexImage){
+  const metadata = {
+    id: entry.id,
+    ticker: entry.ticker,
+    indexTicker: entry.indexTicker,
+    date: entry.date,
+    tags: entry.tags || [],
+    notes: entry.notes || '',
+    created: entry.created || Date.now(),
+  };
+
+  if(await cloud.isReady()){
+    const saved = await cloud.create(metadata, stockImage, indexImage);
+    const syncedEntry = toIndexEntry(saved);
+    cacheEntryImages(syncedEntry.id, saved.stockImageUrl, saved.indexImageUrl);
+    return syncedEntry;
+  }
+
+  await cacheEntryLocally(metadata.id, stockImage, indexImage);
+  return metadata;
+}
+
+function applyRemoteIndex(remote){
+  index = remote.map(toIndexEntry);
+  imgCache = {};
+}
+
+async function syncFromCloud(){
+  if(!(await cloud.isReady())) return false;
+
+  // 1) Always pull remote first so expired local signed URLs get refreshed.
+  let remote = await cloud.list();
+  const remoteIds = new Set(remote.map(e => e.id));
+  const priorLocal = index.slice();
+  const localOnly = priorLocal.filter(e => !remoteIds.has(e.id));
+
+  if(remote.length > 0){
+    // Keep local-only metadata entries that have not been uploaded yet.
+    applyRemoteIndex(remote);
+    for(const entry of localOnly){
+      if(!index.some(e => e.id === entry.id)){
+        index.push(entry);
+      }
+    }
+    index.sort((a, b) => (b.created || 0) - (a.created || 0));
+    await saveIndex();
+  }
+
+  // 2) Migrate only durable local image blobs (data: URLs). Never block remote refresh.
+  const payload = [];
+  for(const entry of localOnly){
+    let imgs;
+    try{
+      if(imgCache[entry.id]){
+        imgs = imgCache[entry.id];
+      } else if(entry.synced){
+        continue;
+      } else {
+        const v = await idbGet('img:'+entry.id);
+        imgs = v ? JSON.parse(v) : {stock:null, index:null};
+      }
+    }catch(e){
+      continue;
+    }
+    if(!imgs.stock || !imgs.index) continue;
+    if(!String(imgs.stock).startsWith('data:') || !String(imgs.index).startsWith('data:')) continue;
+    payload.push({
+      ...entry,
+      stockImage: imgs.stock,
+      indexImage: imgs.index,
+    });
+  }
+
+  if(payload.length > 0){
+    try{
+      await cloud.migrate(payload);
+      remote = await cloud.list();
+      if(remote.length > 0){
+        const remainingLocal = index.filter(e => !remote.some(r => r.id === e.id));
+        applyRemoteIndex(remote);
+        for(const entry of remainingLocal){
+          if(!index.some(e => e.id === entry.id)) index.push(entry);
+        }
+        index.sort((a, b) => (b.created || 0) - (a.created || 0));
+        await saveIndex();
+      }
+    }catch(migrateErr){
+      console.error('Local→cloud migrate failed (remote index still applied):', migrateErr);
+      flash('Cloud loaded; some local-only studies could not upload.');
+    }
+  }
+
+  return remote.length > 0;
 }
 
 // ---------- drop zones ----------
@@ -466,16 +692,16 @@ els.saveBtn.addEventListener('click', async ()=>{
 
   els.saveBtn.disabled = true; flash('Saving…');
   try{
-    await idbSet('img:'+id, JSON.stringify({stock:pendingStock, index:pendingIndex}));
-    index.unshift(entry);
+    const savedEntry = await persistEntry(entry, pendingStock, pendingIndex);
+    index = index.filter(e => e.id !== savedEntry.id);
+    index.unshift(savedEntry);
     await saveIndex();
-    imgCache[id] = {stock:pendingStock, index:pendingIndex};
     resetForm();
     render();
-    flash('Saved.');
+    flash((await cloud.isReady()) ? 'Saved to cloud.' : 'Saved locally.');
   }catch(e){
     console.error(e);
-    flash('Storage error — image may be too large.');
+    flash(e.message || 'Storage error — image may be too large.');
   }
   els.saveBtn.disabled = false;
 });
@@ -498,11 +724,21 @@ function flash(msg){
 // ---------- delete ----------
 async function deleteEntry(id){
   if(!confirm('Delete this study? This cannot be undone.')) return;
-  try{ await idbDelete('img:'+id); }catch(e){}
-  index = index.filter(e=>e.id!==id);
-  delete imgCache[id];
-  await saveIndex();
-  render();
+  try{
+    const entry = index.find(e => e.id === id);
+    if(entry?.synced && await cloud.isReady()){
+      await cloud.remove(id);
+    } else {
+      try{ await idbDelete('img:'+id); }catch(e){}
+    }
+    index = index.filter(e=>e.id!==id);
+    delete imgCache[id];
+    await saveIndex();
+    render();
+  }catch(e){
+    console.error(e);
+    flash(e.message || 'Delete failed.');
+  }
 }
 
 // ---------- tags sidebar ----------
@@ -576,11 +812,11 @@ const io = new IntersectionObserver((entries)=>{
     if(!obs.isIntersecting) return;
     io.unobserve(obs.target);
     const id = obs.target.dataset.entryId;
-    const imgs = await getImages(id);
+    const imgs = await getImages(id, { forceResign: true });
     const stockPane = obs.target.querySelector('[data-role="stock"]');
     const indexPane = obs.target.querySelector('[data-role="index"]');
-    fillPane(stockPane, imgs.stock, 'STOCK');
-    fillPane(indexPane, imgs.index, 'INDEX');
+    fillPane(stockPane, imgs.stock, 'STOCK', id, 'stock');
+    fillPane(indexPane, imgs.index, 'INDEX', id, 'index');
   });
 }, {rootMargin:'400px'});
 
@@ -588,11 +824,35 @@ function observeCard(card, entry){
   card.dataset.entryId = entry.id;
   io.observe(card);
 }
-function fillPane(pane, dataUrl, label){
+
+function fillPane(pane, dataUrl, label, entryId, role){
   if(!dataUrl){ pane.textContent = 'missing image'; return; }
   pane.className = 'pane';
-  pane.innerHTML = `<span class="tag">${label}</span><img src="${dataUrl}">`;
-  pane.querySelector('img').addEventListener('click', ()=> openLightbox(dataUrl));
+  pane.innerHTML = `<span class="tag">${label}</span><img src="${dataUrl}" alt="${label}">`;
+  const img = pane.querySelector('img');
+  img.addEventListener('click', ()=> openLightbox(img.src));
+  if(entryId && role){
+    img.addEventListener('error', async ()=>{
+      if(img.dataset.resigned === '1'){
+        pane.textContent = 'missing image';
+        return;
+      }
+      img.dataset.resigned = '1';
+      try{
+        delete imgCache[entryId];
+        const refreshed = await getImages(entryId, { forceResign: true });
+        const next = role === 'stock' ? refreshed.stock : refreshed.index;
+        if(next){
+          img.src = next;
+        } else {
+          pane.textContent = 'missing image';
+        }
+      }catch(e){
+        console.error(e);
+        pane.textContent = 'missing image';
+      }
+    });
+  }
 }
 
 // ---------- lightbox ----------
@@ -609,12 +869,16 @@ els.searchBox.addEventListener('input', ()=>{
   searchTimer = setTimeout(render, 150);
 });
 
-// ---------- export ----------
+// ---------- export / import ----------
 els.exportBtn.addEventListener('click', async ()=>{
   const full = [];
   for(const e of index){
-    const imgs = await getImages(e.id);
-    full.push({...e, stockImage: imgs.stock, indexImage: imgs.index});
+    const imgs = await getImages(e.id, { forceResign: !!e.synced });
+    full.push({
+      ...e,
+      stockImage: await toDataUrl(imgs.stock),
+      indexImage: await toDataUrl(imgs.index),
+    });
   }
   const blob = new Blob([JSON.stringify(full, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -623,11 +887,69 @@ els.exportBtn.addEventListener('click', async ()=>{
   a.click();
 });
 
+els.importBtn.addEventListener('click', ()=> els.importFile.click());
+
+els.importFile.addEventListener('change', async (e)=>{
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if(!file) return;
+
+  els.importBtn.disabled = true;
+  flash('Importing…');
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    let imported = 0;
+
+    for(const raw of items){
+      const entry = normalizeImportedEntry(raw);
+      if(!entry.ticker || !entry.stockImage || !entry.indexImage) continue;
+      const stockImage = await toDataUrl(entry.stockImage);
+      const indexImage = await toDataUrl(entry.indexImage);
+      const savedEntry = await persistEntry(entry, stockImage, indexImage);
+      index = index.filter(e => e.id !== savedEntry.id);
+      index.unshift(savedEntry);
+      imported++;
+    }
+
+    await saveIndex();
+    renderTags();
+    render();
+    flash(imported ? `Imported ${imported} ${imported === 1 ? 'study' : 'studies'}.` : 'No valid studies found in file.');
+  }catch(err){
+    console.error(err);
+    flash(err.message || 'Import failed.');
+  }
+  els.importBtn.disabled = false;
+});
+
 // ---------- init ----------
 (async function init(){
-  await loadIndex();
+  // Always paint local data first so the page never sits on "Loading…".
+  try{
+    await loadIndex();
+  }catch(e){
+    console.error(e);
+  }
   renderTags();
   render();
+
+  await updateSyncBanner();
+
+  if(await cloud.isReady()){
+    try{
+      flash('Syncing with cloud…');
+      const synced = await syncFromCloud();
+      flash(synced ? 'Cloud sync complete.' : 'Logged in — no cloud studies for this account yet.');
+      renderTags();
+      render();
+    }catch(e){
+      console.error(e);
+      flash(`Cloud sync failed: ${e.message || e} — showing local copy.`);
+    }
+  }
+  await updateSyncBanner();
 })();
 </script>
 </body>
