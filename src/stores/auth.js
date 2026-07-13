@@ -1,67 +1,46 @@
 import { writable } from 'svelte/store';
+import { supabase } from '../lib/supabase.js';
 
-// Create a custom store for authentication
 function createAuthStore() {
-  const storedAuth = localStorage.getItem('authData');
-  const initialState = storedAuth ? JSON.parse(storedAuth) : {
+  const { subscribe, set } = writable({
     isAuthenticated: false,
     user: null,
-    accessToken: null,
-    refreshToken: null,
-    expiresAt: null,
-  };
+    session: null,
+    loading: true,
+  });
 
-  const { subscribe, set, update } = writable(initialState);
+  function applySession(session) {
+    set({
+      isAuthenticated: !!session,
+      user: session?.user ?? null,
+      session,
+      loading: false,
+    });
+  }
+
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    applySession(session);
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    applySession(session);
+  });
 
   return {
     subscribe,
-    login: (authData) => {
-      const newState = {
-        isAuthenticated: true,
-        user: authData.user,
-        accessToken: authData.accessToken,
-        refreshToken: authData.refreshToken,
-        expiresAt: authData.expiresAt,
-      };
-      localStorage.setItem('authData', JSON.stringify(newState));
-      set(newState);
-    },
-    logout: () => {
-      const emptyState = {
-        isAuthenticated: false,
-        user: null,
-        accessToken: null,
-        refreshToken: null,
-        expiresAt: null,
-      };
-      localStorage.removeItem('authData');
-      set(emptyState);
-    },
-    updateToken: (accessToken, expiresAt) => {
-      update(state => {
-        const newState = { ...state, accessToken, expiresAt };
-        localStorage.setItem('authData', JSON.stringify(newState));
-        return newState;
+    loginWithGoogle: async () => {
+      const redirectTo = `${window.location.origin}/`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
       });
+      if (error) throw error;
     },
-    checkExpiration: () => {
-      update(state => {
-        if (state.expiresAt && Date.now() >= state.expiresAt) {
-          // Token expired, logout
-          localStorage.removeItem('authData');
-          return {
-            isAuthenticated: false,
-            user: null,
-            accessToken: null,
-            refreshToken: null,
-            expiresAt: null,
-          };
-        }
-        return state;
-      });
+    logout: async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     },
   };
 }
 
 export const authStore = createAuthStore();
-

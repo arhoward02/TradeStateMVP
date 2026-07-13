@@ -23,8 +23,13 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables (never commit secrets)
 .env
 .env.local
 .env.production
 
+# study-config.js is generated at build from VITE_SUPABASE_* and may also be
+# committed so the gallery works even if Vercel env vars are missing briefly.
+# It only contains the public anon key (same as the browser bundle).
+
+.vercel

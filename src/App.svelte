@@ -1,29 +1,30 @@
 <script>
+  import { onMount } from 'svelte';
   import Router from 'svelte-spa-router';
   import { wrap } from 'svelte-spa-router/wrap';
   import { authStore } from './stores/auth';
-  
-  // Route components
+  import { supabase } from './lib/supabase.js';
+
   import Login from './routes/Login.svelte';
   import Dashboard from './routes/Dashboard.svelte';
-  import OAuthCallback from './routes/OAuthCallback.svelte';
-  
+
   const routes = {
     '/': Login,
     '/login': Login,
     '/dashboard': wrap({
       component: Dashboard,
-      conditions: [
-        () => {
-          return $authStore.isAuthenticated;
-        }
-      ]
+      conditions: [() => $authStore.isAuthenticated],
     }),
-    '/callback': OAuthCallback,
   };
-  
-  function conditionsFailed(event) {
-    // Redirect to login if authentication check fails
+
+  onMount(async () => {
+    if (window.location.search.includes('code=')) {
+      await supabase.auth.exchangeCodeForSession(window.location.href);
+      window.history.replaceState({}, '', window.location.pathname + '#/dashboard');
+    }
+  });
+
+  function conditionsFailed() {
     if (!$authStore.isAuthenticated) {
       window.location.hash = '/login';
     }
@@ -33,4 +34,3 @@
 <main class="min-h-screen">
   <Router {routes} on:conditionsFailed={conditionsFailed} />
 </main>
-
