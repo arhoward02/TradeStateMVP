@@ -473,6 +473,15 @@
                 </svg>
                 <span>Study Gallery</span>
               </a>
+              <a
+                href="/leading-groups.html"
+                class="inline-flex items-center space-x-3 px-8 py-4 border border-dark-text-muted/40 text-dark-text font-semibold rounded-lg hover:border-accent-cyan hover:text-accent-cyan transition-all duration-300"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <span>Leading Groups</span>
+              </a>
             </div>
           </div>
 

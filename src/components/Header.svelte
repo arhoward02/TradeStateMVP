@@ -30,6 +30,9 @@
         <a href="/study.html" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
           Study Gallery
         </a>
+        <a href="/leading-groups.html" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+          Leading Groups
+        </a>
       </div>
 
       <div class="flex items-center space-x-4">
