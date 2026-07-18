@@ -33,3 +33,6 @@ dist-ssr
 # It only contains the public anon key (same as the browser bundle).
 
 .vercel
+
+# Supabase CLI local cache (machine-specific, not project state)
+supabase/.temp
