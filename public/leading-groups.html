@@ -133,18 +133,6 @@
   .zone-actions .staged{margin-top:0;font-family:var(--mono);font-size:11px;color:var(--green);}
   .hint{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5;}
 
-  .field label{
-    display:block;font-family:var(--mono);font-size:10px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;
-  }
-  .field textarea{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);
-    border-radius:6px;padding:10px 12px;color:var(--text);
-    font-family:var(--mono);font-size:12px;outline:none;resize:vertical;min-height:110px;
-    line-height:1.45;
-  }
-  .field textarea:focus{border-color:var(--blue);}
-
   .progress{
     margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--amber);
     min-height:18px;
@@ -240,7 +228,7 @@
       <div class="staged" id="stagedIndustry"></div>
       <button type="button" class="btn ghost small" id="clearIndustry" style="display:none;">Clear</button>
     </div>
-    <p class="hint">Paste ~31 of 73 industries. Multiple pastes merge by name; CSV overrides OCR on the same name.</p>
+    <p class="hint">Paste ~31 of 73 industries. Multiple pastes merge by name.</p>
   </div>
 
   <div class="card">
@@ -258,17 +246,6 @@
     </div>
   </div>
 
-  <div class="card">
-    <h3>Or type ranks manually (optional)</h3>
-    <div class="field">
-      <label>One row per line: Name, 1W, 1M, 3M</label>
-      <textarea id="csvInput" placeholder="Office REITs, 1, 3, 2
-Diversified REITs, 2, 7, 6
-Banks, 4.52, 5.67, 11.30"></textarea>
-    </div>
-    <p class="hint">Lower rank = stronger for industries. Theme rows use % returns. Merged with OCR when you hit Compute (CSV overrides same name).</p>
-  </div>
-
   <button class="btn block" id="computeBtn">Compute Rankings</button>
   <div class="progress" id="progress"></div>
 
@@ -277,7 +254,7 @@ Banks, 4.52, 5.67, 11.30"></textarea>
     <div class="line"></div>
   </div>
   <div class="table-wrap" id="industryTableWrap">
-    <div class="empty-row" id="industryEmpty">Paste screenshots or add CSV, then Compute.</div>
+    <div class="empty-row" id="industryEmpty">Paste screenshots, then Compute.</div>
   </div>
 
   <div class="section-head">
@@ -285,7 +262,7 @@ Banks, 4.52, 5.67, 11.30"></textarea>
     <div class="line"></div>
   </div>
   <div class="table-wrap" id="themeTableWrap">
-    <div class="empty-row" id="themeEmpty">Paste screenshots or add CSV, then Compute.</div>
+    <div class="empty-row" id="themeEmpty">Paste screenshots, then Compute.</div>
   </div>
 
   <p class="status" id="statusLine"></p>
@@ -315,7 +292,6 @@ const els = {
   thumbsTheme: document.getElementById('thumbsTheme'),
   stagedIndustry: document.getElementById('stagedIndustry'),
   stagedTheme: document.getElementById('stagedTheme'),
-  csvInput: document.getElementById('csvInput'),
   computeBtn: document.getElementById('computeBtn'),
   progress: document.getElementById('progress'),
   industryTableWrap: document.getElementById('industryTableWrap'),
@@ -337,7 +313,7 @@ async function initAuthBanner() {
     const cfg = window.__STUDY_CONFIG__ || {};
     const createClient = window.supabase?.createClient;
     if (!cfg.supabaseUrl || !cfg.supabaseAnonKey || !createClient) {
-      els.syncBanner.innerHTML = `Local only — <a href="/#/login" style="color:var(--teal);">Log in</a> optional; compute runs in your browser.`;
+      els.syncBanner.innerHTML = `Setup issue — <a href="/#/login" style="color:var(--teal);">log in</a> required to read screenshots.`;
       els.syncBanner.className = 'sync-banner local';
       return;
     }
@@ -353,11 +329,11 @@ async function initAuthBanner() {
       els.syncBanner.textContent = `Signed in as ${email} — rankings stay in this browser (not cloud-saved).`;
       els.syncBanner.className = 'sync-banner cloud';
     } else {
-      els.syncBanner.innerHTML = `Local compute — <a href="/#/login" style="color:var(--teal);">Log in</a> optional.`;
+      els.syncBanner.innerHTML = `<a href="/#/login" style="color:var(--teal);">Log in</a> with Google to read screenshots.`;
       els.syncBanner.className = 'sync-banner local';
     }
   } catch {
-    els.syncBanner.innerHTML = `Local compute — <a href="/#/login" style="color:var(--teal);">Log in</a> optional.`;
+    els.syncBanner.innerHTML = `<a href="/#/login" style="color:var(--teal);">Log in</a> with Google to read screenshots.`;
     els.syncBanner.className = 'sync-banner local';
   }
 }
@@ -469,9 +445,6 @@ wireZone(els.dropIndustry, els.fileIndustry, els.browseIndustry, els.clearIndust
 wireZone(els.dropTheme, els.fileTheme, els.browseTheme, els.clearTheme, 'theme');
 
 function handlePaste(e) {
-  // Ignore paste into the CSV textarea
-  if (e.target === els.csvInput || els.csvInput.contains(e.target)) return;
-
   const items = e.clipboardData?.items;
   if (!items) return;
   const imageItem = [...items].find((it) => it.type?.startsWith('image/'));
@@ -569,11 +542,9 @@ function escapeHtml(s) {
 }
 
 els.computeBtn.addEventListener('click', async () => {
-  const csvText = els.csvInput.value;
   const hasImages = industryImages.length || themeImages.length;
-  const hasCsv = csvText.trim().length > 0;
-  if (!hasImages && !hasCsv) {
-    setProgress('Paste a screenshot or add CSV rows first.', true);
+  if (!hasImages) {
+    setProgress('Paste a screenshot first.', true);
     return;
   }
 
@@ -596,24 +567,15 @@ els.computeBtn.addEventListener('click', async () => {
     }
 
     setProgress('Scoring…');
-    const result = computeRankings({ csvText, ocrIndustry, ocrThemes });
+    const result = computeRankings({ ocrIndustry, ocrThemes });
     renderTable(els.industryTableWrap, result.industry, { isTheme: false });
     renderTable(els.themeTableWrap, result.themes, { isTheme: true });
     els.statusLine.textContent = result.status;
 
     if (!result.total) {
-      setProgress(
-        hasImages
-          ? 'Claude found no rows in that screenshot — try a clearer crop, or use the CSV box.'
-          : 'No parseable rows.',
-        true,
-      );
+      setProgress('Claude found no rows in that screenshot — try a clearer crop.', true);
     } else {
-      const ocrNote =
-        hasImages
-          ? ` Claude read: ${ocrIndustry.length} industry, ${ocrThemes.length} theme.`
-          : '';
-      setProgress(`Done.${ocrNote}`);
+      setProgress(`Done. Claude read: ${ocrIndustry.length} industry, ${ocrThemes.length} theme.`);
     }
   } catch (err) {
     console.error(err);
