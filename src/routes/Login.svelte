@@ -1,103 +1,39 @@
 <script>
   import { authStore } from '../stores/auth';
   import { onMount } from 'svelte';
-  
+  import SectorCube from '../components/SectorCube.svelte';
+  import ProductPreviewLoop from '../components/ProductPreviewLoop.svelte';
+  import GlowIcon from '../components/GlowIcon.svelte';
+  import NodeGlow from '../components/NodeGlow.svelte';
+
   let loading = false;
   let error = null;
   let taglineVisible = false;
   let subheadlineVisible = false;
-  let metrics = [
-    { symbol: 'BTC', price: 43250.50, change: 1.2 },
-    { symbol: 'SPY', price: 478.32, change: 0.5 },
-    { symbol: 'QQQ', price: 412.18, change: -0.3 },
-    { symbol: 'ETH', price: 2650.75, change: 2.1 },
-    { symbol: 'AAPL', price: 195.42, change: 0.8 },
-    { symbol: 'TSLA', price: 248.67, change: -1.5 }
+
+  const features = [
+    {
+      variant: 'orderbook',
+      title: 'Bank-Level Security',
+      body: 'OAuth 2.0 authentication with enterprise-grade encryption',
+    },
+    {
+      variant: 'chart',
+      title: 'Real-Time Data',
+      body: 'Live market data and instant trade execution',
+    },
+    {
+      variant: 'candles',
+      title: 'Advanced Analytics',
+      body: 'Deep insights into your trading performance',
+    },
+    {
+      variant: 'sectors',
+      title: 'Easy Integration',
+      body: 'Connect multiple brokerages in one dashboard',
+    },
   ];
-  let currentMetricIndex = 0;
-  let currentGraphIndex = 0;
-  
-  // Graph data structures
-  const graphs = [
-    {
-      id: 'hrv-pnl',
-      title: 'HRV vs PnL',
-      xAxis: 'HRV',
-      yAxis: 'P&L ($)',
-      path: 'M 40 55 L 80 60 L 120 70 L 160 85 L 200 105 L 240 125 L 280 145 L 320 160 L 360 170',
-      fillPath: 'M 40 55 L 80 60 L 120 70 L 160 85 L 200 105 L 240 125 L 280 145 L 320 160 L 360 170 L 360 200 L 40 200 Z',
-      gradientId: 'gradientHrvPnl',
-      gradientColors: ['rgba(6, 182, 212, 0.8)', 'rgba(34, 211, 238, 0.3)', 'rgba(6, 182, 212, 0)'],
-      lineColor: '#06b6d4',
-      dataPoints: [
-        { x: 80, y: 60, label: 'HRV: 20', value: '$12,400' },
-        { x: 200, y: 105, label: 'HRV: 30', value: '$8,200' },
-        { x: 320, y: 160, label: 'HRV: 45', value: '$2,500' }
-      ],
-      description: 'Lower HRV correlates with better P&L',
-      tooltip: 'Traders with HRV < 30 average 40% higher returns',
-      performanceMetric: '+40% Returns'
-    },
-    {
-      id: 'sleep-pnl',
-      title: 'Sleep vs PnL',
-      xAxis: 'Sleep Score (hrs)',
-      yAxis: 'P&L ($)',
-      path: 'M 40 170 L 80 160 L 120 140 L 160 115 L 200 90 L 240 70 L 280 60 L 320 55 L 360 50',
-      fillPath: 'M 40 170 L 80 160 L 120 140 L 160 115 L 200 90 L 240 70 L 280 60 L 320 55 L 360 50 L 360 200 L 40 200 Z',
-      gradientId: 'gradientSleepPnl',
-      gradientColors: ['rgba(16, 185, 129, 0.8)', 'rgba(52, 211, 153, 0.3)', 'rgba(16, 185, 129, 0)'],
-      lineColor: '#10b981',
-      dataPoints: [
-        { x: 80, y: 160, label: '5 hrs', value: '$2,800' },
-        { x: 200, y: 90, label: '7 hrs', value: '$8,500' },
-        { x: 320, y: 55, label: '9 hrs', value: '$13,200' }
-      ],
-      description: 'Better sleep quality leads to higher performance',
-      tooltip: '8+ hours of sleep correlates with 28% better P&L',
-      performanceMetric: '+28% P&L'
-    },
-    {
-      id: 'stress-pnl',
-      title: 'Stress vs PnL',
-      xAxis: 'Stress Level',
-      yAxis: 'P&L ($)',
-      path: 'M 40 55 L 80 65 L 120 80 L 160 100 L 200 120 L 240 140 L 280 155 L 320 165 L 360 172',
-      fillPath: 'M 40 55 L 80 65 L 120 80 L 160 100 L 200 120 L 240 140 L 280 155 L 320 165 L 360 172 L 360 200 L 40 200 Z',
-      gradientId: 'gradientStressPnl',
-      gradientColors: ['rgba(251, 146, 60, 0.8)', 'rgba(249, 115, 22, 0.3)', 'rgba(251, 146, 60, 0)'],
-      lineColor: '#fb923c',
-      dataPoints: [
-        { x: 80, y: 65, label: 'Stress: Low', value: '$11,500' },
-        { x: 200, y: 120, label: 'Stress: Med', value: '$6,200' },
-        { x: 320, y: 165, label: 'Stress: High', value: '$1,800' }
-      ],
-      description: 'Lower stress leads to better performance',
-      tooltip: 'Low stress traders close 35% more winning positions',
-      performanceMetric: '+35% Win Rate'
-    },
-    {
-      id: 'sleep-winrate',
-      title: 'Sleep vs Win Rate',
-      xAxis: 'Sleep Score (hrs)',
-      yAxis: 'Win Rate (%)',
-      path: 'M 40 165 L 80 155 L 120 135 L 160 110 L 200 85 L 240 65 L 280 55 L 320 48 L 360 45',
-      fillPath: 'M 40 165 L 80 155 L 120 135 L 160 110 L 200 85 L 240 65 L 280 55 L 320 48 L 360 45 L 360 200 L 40 200 Z',
-      gradientId: 'gradientSleepWinrate',
-      gradientColors: ['rgba(20, 184, 166, 0.8)', 'rgba(94, 234, 212, 0.3)', 'rgba(20, 184, 166, 0)'],
-      lineColor: '#14b8a6',
-      dataPoints: [
-        { x: 80, y: 155, label: '5 hrs', value: '42%' },
-        { x: 200, y: 85, label: '7 hrs', value: '68%' },
-        { x: 320, y: 48, label: '9 hrs', value: '81%' }
-      ],
-      description: 'Quality sleep improves win rate',
-      tooltip: 'Quality sleep improves decision accuracy by 45%',
-      performanceMetric: '+45% Accuracy'
-    }
-  ];
-  
-  // Check if already authenticated
+
   onMount(() => {
     const unsubscribe = authStore.subscribe((state) => {
       if (!state.loading && state.isAuthenticated) {
@@ -105,57 +41,16 @@
       }
     });
 
-    createGradientOrbs();
-
-    // Create particle system
-    createParticleSystem();
-
-    // Create pulsing circles
-    createPulsingCircles();
-
-    // Setup scroll animations
-    setupScrollAnimations();
-    
-    // Setup stats counter animation
-    const statsObserver = new IntersectionObserver(animateStats, {
-      threshold: 0.5
-    });
-    
-    const statsSection = document.querySelector('.stats-section');
-    if (statsSection) {
-      statsObserver.observe(statsSection);
-    }
-
-    // Animate tagline
-    setTimeout(() => {
-      taglineVisible = true;
-    }, 300);
-
-    // Animate subheadline
-    setTimeout(() => {
-      subheadlineVisible = true;
-    }, 800);
-
-    // Setup parallax effect
-    setupParallax();
-
-    // Rotate metrics ticker
-    const metricsInterval = setInterval(() => {
-      currentMetricIndex = (currentMetricIndex + 1) % metrics.length;
-    }, 3000);
-    
-    // Setup graph cycling
-    const graphInterval = setInterval(() => {
-      currentGraphIndex = (currentGraphIndex + 1) % graphs.length;
-    }, 7000);
+    const t1 = setTimeout(() => { taglineVisible = true; }, 280);
+    const t2 = setTimeout(() => { subheadlineVisible = true; }, 700);
 
     return () => {
       unsubscribe();
-      clearInterval(metricsInterval);
-      clearInterval(graphInterval);
+      clearTimeout(t1);
+      clearTimeout(t2);
     };
   });
-  
+
   async function handleLogin() {
     loading = true;
     error = null;
@@ -168,640 +63,534 @@
     }
   }
 
-  function createGradientOrbs() {
-    const container = document.querySelector('.mesh-gradient-bg');
-    if (!container) return;
-
-    // Create 3 large gradient orbs for mesh effect
-    const orbCount = 3;
-    for (let i = 0; i < orbCount; i++) {
-      const orb = document.createElement('div');
-      orb.className = `gradient-orb orb-${i + 1}`;
-      container.appendChild(orb);
-    }
-  }
-
-  function createParticleSystem() {
-    const container = document.querySelector('.mesh-gradient-bg');
-    if (!container) return;
-
-    const particleCount = 30;
-    const sizes = ['particle-small', 'particle-medium', 'particle-large'];
-    
-    for (let i = 0; i < particleCount; i++) {
-      const particle = document.createElement('div');
-      const size = sizes[Math.floor(Math.random() * sizes.length)];
-      particle.className = `particle ${size}`;
-      
-      // Random starting position
-      particle.style.left = Math.random() * 100 + '%';
-      particle.style.top = Math.random() * 100 + '%';
-      particle.style.animationDelay = Math.random() * 20 + 's';
-      
-      container.appendChild(particle);
-    }
-  }
-
-  function createPulsingCircles() {
-    const container = document.querySelector('.mesh-gradient-bg');
-    if (!container) return;
-
-    const circleCount = 5;
-    const sizes = [100, 150, 200];
-    
-    for (let i = 0; i < circleCount; i++) {
-      const circle = document.createElement('div');
-      circle.className = 'pulsing-circle';
-      
-      const size = sizes[Math.floor(Math.random() * sizes.length)];
-      circle.style.width = size + 'px';
-      circle.style.height = size + 'px';
-      circle.style.left = Math.random() * 80 + 10 + '%';
-      circle.style.top = Math.random() * 80 + 10 + '%';
-      circle.style.animationDelay = Math.random() * 4 + 's';
-      
-      container.appendChild(circle);
-    }
-  }
-
-  let statsAnimated = false;
-
-  function animateCounter(element, target, suffix = '', duration = 2000) {
-    const start = 0;
-    const increment = target / (duration / 16); // 60fps
-    let current = start;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        current = target;
-        clearInterval(timer);
-      }
-      
-      if (suffix === '%') {
-        element.textContent = current.toFixed(1) + suffix;
-      } else if (target >= 1000000) {
-        element.textContent = '$' + (current / 1000000).toFixed(0) + 'M+';
-      } else {
-        element.textContent = (current / 1000).toFixed(0) + 'K+';
-      }
-    }, 16);
-  }
-
-  function animateStats(entries) {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && !statsAnimated) {
-        statsAnimated = true;
-        
-        // Animate each stat
-        const tradersEl = document.querySelector('.counter-traders');
-        const volumeEl = document.querySelector('.counter-volume');
-        const uptimeEl = document.querySelector('.counter-uptime');
-        
-        if (tradersEl) animateCounter(tradersEl, 10000, '', 2000);
-        if (volumeEl) animateCounter(volumeEl, 50000000, '', 2000);
-        if (uptimeEl) animateCounter(uptimeEl, 99.9, '%', 2000);
-      }
-    });
-  }
-
-  function setupScrollAnimations() {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('fade-in');
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.animate-on-scroll').forEach(el => {
-      observer.observe(el);
-    });
-  }
-
   function scrollToLogin() {
-    document.querySelector('#login-section')?.scrollIntoView({ 
-      behavior: 'smooth' 
-    });
-  }
-
-  function setupParallax() {
-    const handleScroll = () => {
-      const scrolled = window.pageYOffset;
-      const parallaxElements = document.querySelectorAll('.parallax-layer');
-      parallaxElements.forEach((el, index) => {
-        const speed = 0.5 + (index * 0.1);
-        const yPos = -(scrolled * speed);
-        el.style.transform = `translate3d(0, ${yPos}px, 0)`;
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }
-
-  function formatPrice(price) {
-    return price.toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
-  }
-
-  function getChangeColor(change) {
-    return change >= 0 ? 'text-green-500' : 'text-red-500';
-  }
-
-  function getChangeSymbol(change) {
-    return change >= 0 ? '+' : '';
+    document.querySelector('#login-section')?.scrollIntoView({ behavior: 'smooth' });
   }
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-dark-bg via-dark-bg-secondary to-dark-bg-tertiary relative overflow-hidden">
-  <!-- Animated Gradient Mesh Background -->
-  <div class="mesh-gradient-bg"></div>
-
-  <!-- Animated Live Drawing Heartbeat EKG Lines -->
-  <div class="chart-lines">
-    <!-- Heartbeat Line 1 - Single continuous path with spike -->
-    <div class="heartbeat-container" style="top: 30%;">
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" style="width: 100%; height: 100px;">
-        <defs>
-          <linearGradient id="ekgGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:rgba(6, 182, 212, 0);stop-opacity:0" />
-            <stop offset="10%" style="stop-color:rgba(6, 182, 212, 0.5);stop-opacity:1" />
-            <stop offset="40%" style="stop-color:rgba(6, 182, 212, 1);stop-opacity:1" />
-            <stop offset="60%" style="stop-color:rgba(6, 182, 212, 1);stop-opacity:1" />
-            <stop offset="90%" style="stop-color:rgba(34, 211, 238, 0.5);stop-opacity:1" />
-            <stop offset="100%" style="stop-color:rgba(34, 211, 238, 0);stop-opacity:0" />
-          </linearGradient>
-        </defs>
-        <path class="ekg-path" 
-              d="M 0 50 L 550 50 L 570 50 L 580 20 L 595 80 L 610 10 L 625 50 L 650 50 L 1200 50" 
-              fill="none" 
-              stroke="url(#ekgGradient1)" 
-              stroke-width="2.5" 
-              stroke-linecap="round" 
-              stroke-linejoin="round" />
-      </svg>
+<div class="page">
+  <!-- Raycast-style floating toolbar -->
+  <nav class="toolbar">
+    <a href="#/" class="toolbar-brand display-font">TradeState</a>
+    <div class="toolbar-links">
+      <a href="/leading-groups.html">Leading Groups</a>
+      <a href="/study.html">Study Gallery</a>
     </div>
-    
-    <!-- Heartbeat Line 2 -->
-    <div class="heartbeat-container line-2" style="top: 55%;">
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" style="width: 100%; height: 100px; animation-delay: 4s;">
-        <defs>
-          <linearGradient id="ekgGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:rgba(168, 85, 247, 0);stop-opacity:0" />
-            <stop offset="10%" style="stop-color:rgba(168, 85, 247, 0.5);stop-opacity:1" />
-            <stop offset="40%" style="stop-color:rgba(168, 85, 247, 1);stop-opacity:1" />
-            <stop offset="60%" style="stop-color:rgba(168, 85, 247, 1);stop-opacity:1" />
-            <stop offset="90%" style="stop-color:rgba(192, 132, 252, 0.5);stop-opacity:1" />
-            <stop offset="100%" style="stop-color:rgba(192, 132, 252, 0);stop-opacity:0" />
-          </linearGradient>
-        </defs>
-        <path class="ekg-path" 
-              d="M 0 50 L 555 50 L 575 50 L 585 22 L 600 78 L 615 12 L 630 50 L 655 50 L 1200 50" 
-              fill="none" 
-              stroke="url(#ekgGradient2)" 
-              stroke-width="2.5" 
-              stroke-linecap="round" 
-              stroke-linejoin="round" />
-      </svg>
-    </div>
-    
-    <!-- Heartbeat Line 3 -->
-    <div class="heartbeat-container line-3" style="top: 75%;">
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" style="width: 100%; height: 100px; animation-delay: 8s;">
-        <defs>
-          <linearGradient id="ekgGradient3" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:rgba(34, 211, 238, 0);stop-opacity:0" />
-            <stop offset="10%" style="stop-color:rgba(34, 211, 238, 0.5);stop-opacity:1" />
-            <stop offset="40%" style="stop-color:rgba(34, 211, 238, 1);stop-opacity:1" />
-            <stop offset="60%" style="stop-color:rgba(34, 211, 238, 1);stop-opacity:1" />
-            <stop offset="90%" style="stop-color:rgba(6, 182, 212, 0.5);stop-opacity:1" />
-            <stop offset="100%" style="stop-color:rgba(6, 182, 212, 0);stop-opacity:0" />
-          </linearGradient>
-        </defs>
-        <path class="ekg-path" 
-              d="M 0 50 L 560 50 L 580 50 L 590 24 L 605 76 L 620 14 L 635 50 L 660 50 L 1200 50" 
-              fill="none" 
-              stroke="url(#ekgGradient3)" 
-              stroke-width="2.5" 
-              stroke-linecap="round" 
-              stroke-linejoin="round" />
-      </svg>
-    </div>
-  </div>
+  </nav>
 
-  <!-- Tech Grid Overlay -->
-  <div class="tech-grid-overlay"></div>
-
-  <!-- Hero Section -->
-  <section class="relative min-h-screen flex items-center justify-center px-6 py-24">
-    <div class="max-w-7xl mx-auto relative z-10">
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
-        <!-- Left Column: Content (Asymmetric Layout) -->
-        <div class="text-left lg:pl-8 relative">
-          <!-- Code Accent -->
-          <div class="code-accent mb-6">
-            <span class="text-sm font-mono text-dark-text-muted">{'const trading = {'}</span>
-          </div>
-
-          <!-- Live Metrics Ticker -->
-          <div class="live-metrics-ticker mb-8">
-            <div class="inline-flex items-center space-x-3 px-4 py-2 glass-card rounded-lg">
-              <div class="live-badge">
-                <span class="live-dot"></span>
-                <span class="text-xs font-mono text-dark-text-muted ml-2">LIVE</span>
-              </div>
-              <div class="flex items-center space-x-4">
-                {#key currentMetricIndex}
-                  <div class="metric-item">
-                    <span class="text-xs font-mono text-dark-text-muted">{metrics[currentMetricIndex].symbol}</span>
-                    <span class="text-sm font-semibold text-dark-text ml-2">
-                      {'$' + formatPrice(metrics[currentMetricIndex].price)}
-                    </span>
-                    <span class="text-xs font-mono ml-2 {getChangeColor(metrics[currentMetricIndex].change)}">
-                      {getChangeSymbol(metrics[currentMetricIndex].change)}{metrics[currentMetricIndex].change.toFixed(2)}%
-                    </span>
-                  </div>
-                {/key}
-              </div>
-            </div>
-          </div>
-
-          <!-- Hero Title with Display Font -->
-          <div class="fade-in delay-100">
-            <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-[0.95] tracking-tight">
-              <span class="gradient-text display-font">TradeState</span>
-            </h1>
-            
-            <!-- Animated Tagline -->
-            <div class="mb-6">
-              <p class="text-xl md:text-2xl lg:text-3xl text-dark-text-secondary font-medium mb-4 max-w-xl tagline-text {taglineVisible ? 'tagline-visible' : ''}">
-                Where your physiology meets your P&L
-              </p>
-              
-              <!-- Subheadline Value Proposition -->
-              <p class="text-base md:text-lg text-dark-text-muted max-w-xl subheadline-text {subheadlineVisible ? 'subheadline-visible' : ''}">
-                Real-time biometric insights integrated with your trading performance. 
-                <span class="font-mono text-accent-cyan">Optimize. Analyze. Dominate.</span>
-              </p>
-            </div>
-
-            <!-- CTA Buttons -->
-            <div class="mt-10 flex flex-wrap items-center gap-4">
-              <button
-                on:click={scrollToLogin}
-                class="btn-glow inline-flex items-center space-x-3"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span>Join Beta Now</span>
-              </button>
-              <a
-                href="/study.html"
-                class="inline-flex items-center space-x-3 px-8 py-4 border border-dark-text-muted/40 text-dark-text font-semibold rounded-lg hover:border-accent-cyan hover:text-accent-cyan transition-all duration-300"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>Study Gallery</span>
-              </a>
-              <a
-                href="/leading-groups.html"
-                class="inline-flex items-center space-x-3 px-8 py-4 border border-dark-text-muted/40 text-dark-text font-semibold rounded-lg hover:border-accent-cyan hover:text-accent-cyan transition-all duration-300"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                <span>Leading Groups</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Code Accent Bottom -->
-          <div class="code-accent mt-8">
-            <span class="text-sm font-mono text-dark-text-muted">};</span>
-          </div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <div class="live-row">
+          <span class="live-dot"></span>
+          <span class="live-label">Live market intelligence</span>
         </div>
 
-        <!-- Right Column: Chart Preview -->
-        <div class="relative lg:pr-8 parallax-layer">
-          <div class="chart-preview-container">
-            <!-- Mini Chart Preview -->
-            <div class="mini-chart-wrapper">
-              {#each graphs as graph, index}
-                <div class="graph-transition {index === currentGraphIndex ? 'graph-visible' : 'graph-hidden'}" style="position: {index === currentGraphIndex ? 'relative' : 'absolute'}; top: 0; left: 0; width: 100%; height: 100%;">
-                  <!-- Chart Container with Hover Effect -->
-                  <div class="chart-hover-container group">
-                    <svg class="mini-chart" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
-                      <defs>
-                        <linearGradient id={graph.gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" style="stop-color:{graph.gradientColors[0]};stop-opacity:1" />
-                          <stop offset="50%" style="stop-color:{graph.gradientColors[1]};stop-opacity:1" />
-                          <stop offset="100%" style="stop-color:{graph.gradientColors[2]};stop-opacity:1" />
-                        </linearGradient>
-                      </defs>
-                      
-                      <!-- Grid lines -->
-                      <g opacity="0.2" stroke="#94a3b8" stroke-width="0.5">
-                        <line x1="40" y1="20" x2="40" y2="180" />
-                        <line x1="40" y1="180" x2="360" y2="180" />
-                        {#each Array(5) as _, i}
-                          <line x1="40" y1={20 + i * 40} x2="360" y2={20 + i * 40} />
-                        {/each}
-                      </g>
-                      
-                      <!-- Chart fill -->
-                      <path 
-                        class="chart-fill" 
-                        d={graph.fillPath}
-                        fill={'url(#' + graph.gradientId + ')'}
-                      />
-                      
-                      <!-- Chart line with animation -->
-                      <path 
-                        class="chart-line chart-line-animated" 
-                        d={graph.path}
-                        fill="none"
-                        stroke={graph.lineColor}
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                      
-                      <!-- Data points with tooltips -->
-                      {#each graph.dataPoints as point, pointIndex}
-                        <g class="data-point-group">
-                          <circle 
-                            cx={point.x} 
-                            cy={point.y} 
-                            r="4" 
-                            fill={graph.lineColor}
-                            class="data-point data-point-animated"
-                            style="animation-delay: {pointIndex * 0.3 + 0.5}s"
-                          />
-                          <!-- Larger invisible circle for better hover area -->
-                          <circle 
-                            cx={point.x} 
-                            cy={point.y} 
-                            r="12" 
-                            fill="transparent"
-                            class="data-point-hover"
-                            style="cursor: pointer;"
-                          />
-                        </g>
-                      {/each}
-                      
-                      <!-- Axis labels -->
-                      <text x="200" y="195" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="10">
-                        {graph.xAxis}
-                      </text>
-                      <text x="15" y="100" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="10" transform="rotate(-90 15 100)">
-                        {graph.yAxis}
-                      </text>
-                      
-                      <!-- Title -->
-                      <text x="200" y="15" text-anchor="middle" fill="#f1f5f9" font-family="sans-serif" font-size="12" font-weight="600">
-                        {graph.title}
-                      </text>
-                    </svg>
-                    
-                    <!-- Data point labels with tooltips -->
-                    <div class="chart-data-overlay">
-                      {#each graph.dataPoints as point, pointIndex}
-                        <div class="data-point-label tooltip-trigger" style="left: {point.x - 30}px; top: {point.y - 40}px;">
-                          <div class="text-xs font-mono text-dark-text-muted">{point.label}</div>
-                          <div class="text-xs font-semibold" style="color: {graph.lineColor}">{point.value}</div>
-                          
-                          <!-- Tooltip on hover -->
-                          <div class="chart-tooltip">
-                            <p class="text-xs">{graph.tooltip}</p>
-                          </div>
-                        </div>
-                      {/each}
-                    </div>
-                    
-                    <!-- Performance Metric Badge (shows on hover) -->
-                    <div class="performance-badge">
-                      <span class="text-sm font-bold">{graph.performanceMetric}</span>
-                    </div>
-                  </div>
-                </div>
-              {/each}
-              
-              <!-- Status Indicator -->
-              <div class="absolute top-4 right-4 z-10">
-                <div class="live-badge">
-                  <span class="live-dot"></span>
-                  <span class="text-xs font-mono text-dark-text-muted ml-2">REAL-TIME</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <h1 class="display-font brand">TradeState</h1>
 
-      <!-- Scroll Indicator -->
-      <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 scroll-indicator">
-        <svg class="w-6 h-6 text-dark-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-      </div>
-    </div>
-  </section>
-
-  <!-- Stats Bar -->
-  <section class="relative py-16 px-6 stats-section">
-    <div class="max-w-6xl mx-auto">
-      <div class="glass-card rounded-2xl p-8 animate-on-scroll">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div>
-            <div class="counter counter-traders">10,000+</div>
-            <p class="text-dark-text-muted mt-2">Active Traders</p>
-          </div>
-          <div class="border-l border-r border-dark-text-muted/20">
-            <div class="counter counter-volume">$50M+</div>
-            <p class="text-dark-text-muted mt-2">Trading Volume</p>
-          </div>
-          <div>
-            <div class="counter counter-uptime">99.9%</div>
-            <p class="text-dark-text-muted mt-2">Uptime</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Features Grid -->
-  <section class="relative py-16 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-12 animate-on-scroll">
-        <h2 class="text-4xl md:text-5xl font-bold mb-4">
-          <span class="gradient-text-alt">Powerful Features</span>
-        </h2>
-        <p class="text-xl text-dark-text-muted">Everything you need to trade smarter</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Feature 1: Security -->
-        <div class="feature-card animate-on-scroll delay-100">
-          <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-primary-600 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-dark-text mb-2">Bank-Level Security</h3>
-          <p class="text-dark-text-muted">OAuth 2.0 authentication with enterprise-grade encryption</p>
-        </div>
-
-        <!-- Feature 2: Real-time -->
-        <div class="feature-card animate-on-scroll delay-200">
-          <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-dark-text mb-2">Real-Time Data</h3>
-          <p class="text-dark-text-muted">Live market data and instant trade execution</p>
-        </div>
-
-        <!-- Feature 3: Analytics -->
-        <div class="feature-card animate-on-scroll delay-300">
-          <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-dark-text mb-2">Advanced Analytics</h3>
-          <p class="text-dark-text-muted">Deep insights into your trading performance</p>
-        </div>
-
-        <!-- Feature 4: Integration -->
-        <div class="feature-card animate-on-scroll delay-400">
-          <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-dark-text mb-2">Easy Integration</h3>
-          <p class="text-dark-text-muted">Connect multiple brokerages in one dashboard</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Login Section -->
-  <section id="login-section" class="relative py-24 px-6">
-    <div class="max-w-md mx-auto">
-      <div class="glass-card rounded-2xl p-8 shadow-2xl animate-on-scroll">
-        <div class="text-center mb-6">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-blue-600 rounded-full mb-4">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h2 class="text-3xl font-bold text-dark-text mb-2">Sign In</h2>
-          <p class="text-dark-text-muted">Log in with Google to save your trade journal to the cloud</p>
-        </div>
-        
-        <!-- Login Button -->
-        <div class="space-y-4">
-          {#if error}
-            <div class="p-3 bg-red-900/30 backdrop-blur-sm border border-red-500/50 rounded-lg">
-              <p class="text-sm text-red-400">{error}</p>
-            </div>
-          {/if}
-          
-          <button
-            on:click={handleLogin}
-            disabled={loading}
-            class="w-full btn-glow flex items-center justify-center space-x-3"
-          >
-            {#if loading}
-              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Connecting...</span>
-            {:else}
-              <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              <span>Continue with Google</span>
-            {/if}
-          </button>
-          
-          <div class="text-center">
-            <p class="text-xs text-dark-text-muted">
-              By connecting, you agree to our <button class="text-accent-cyan hover:underline">Terms of Service</button> and <button class="text-accent-cyan hover:underline">Privacy Policy</button>
-            </p>
-          </div>
-        </div>
-        
-        <!-- Benefits List -->
-        <div class="mt-8 pt-6 border-t border-dark-text-muted/20">
-          <ul class="space-y-3 text-sm text-dark-text-secondary">
-            <li class="flex items-start">
-              <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Secure Google sign-in via Supabase</span>
-            </li>
-            <li class="flex items-start">
-              <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Trade journal backed up to the cloud</span>
-            </li>
-            <li class="flex items-start">
-              <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>No credit card required</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- Support Footer -->
-      <div class="text-center mt-8">
-        <p class="text-sm text-dark-text-muted">
-          Need help? <button class="text-accent-cyan hover:text-accent-cyan-light font-semibold underline">Contact Support</button>
+        <p class="tagline tagline-text {taglineVisible ? 'tagline-visible' : ''}">
+          Where your physiology meets your P&amp;L
         </p>
+
+        <p class="subhead subheadline-text {subheadlineVisible ? 'subheadline-visible' : ''}">
+          Real-time biometric insights integrated with your trading performance.
+        </p>
+
+        <div class="cta-row">
+          <span class="race">
+            <button type="button" class="btn-primary btn-beta" on:click={scrollToLogin}>
+              Join Beta Now
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <NodeGlow weight={1.4} stars_enabled={false} glow_scale={0.55}>
+          <SectorCube />
+        </NodeGlow>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="relative py-12 px-6 border-t border-dark-text-muted/20">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex flex-col md:flex-row items-center justify-between">
-        <div class="flex items-center space-x-2 mb-4 md:mb-0">
-          <svg class="w-6 h-6 text-accent-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span class="text-lg font-bold text-dark-text">TradeState</span>
-        </div>
-        <p class="text-sm text-dark-text-muted">© 2025 TradeState. All rights reserved.</p>
+  <!-- Product preview -->
+  <section class="section-pad preview-section">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2 class="display-font">See it in motion</h2>
+        <p>A live walkthrough of scanning leaders, themes, and alerts.</p>
+      </div>
+      <NodeGlow weight={1.6} bordered>
+        <ProductPreviewLoop />
+      </NodeGlow>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section-pad">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2 class="display-font">Built for serious traders</h2>
+        <p>Everything you need to trade smarter.</p>
+      </div>
+
+      <div class="feature-grid">
+        {#each features as feature}
+          <div class="feature-card">
+            <GlowIcon variant={feature.variant} />
+            <h3>{feature.title}</h3>
+            <p>{feature.body}</p>
+          </div>
+        {/each}
       </div>
     </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="section-pad stats-section">
+    <div class="section-inner stats-row">
+      <div>
+        <div class="stat-num display-font">10,000+</div>
+        <p>Active Traders</p>
+      </div>
+      <div>
+        <div class="stat-num display-font">$50M+</div>
+        <p>Trading Volume</p>
+      </div>
+      <div>
+        <div class="stat-num display-font">99.9%</div>
+        <p>Uptime</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Login -->
+  <section id="login-section" class="section-pad">
+    <div class="login-frame">
+      <NodeGlow weight={1.3} bordered>
+        <div class="login-card glass-card">
+        <h2 class="display-font">Sign in</h2>
+        <p class="login-sub">Log in with Google to save your trade journal to the cloud.</p>
+
+        {#if error}
+          <div class="error">{error}</div>
+        {/if}
+
+        <button type="button" class="btn-primary w-full" on:click={handleLogin} disabled={loading}>
+          {#if loading}
+            Connecting…
+          {:else}
+            <svg class="g-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+          {/if}
+        </button>
+
+        <ul class="perks">
+          <li>Secure Google sign-in via Supabase</li>
+          <li>Trade journal backed up to the cloud</li>
+          <li>No credit card required</li>
+        </ul>
+        </div>
+      </NodeGlow>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span class="display-font">TradeState</span>
+    <span>© 2026 TradeState. All rights reserved.</span>
   </footer>
 </div>
 
 <style>
-  /* Additional component-specific styles */
-  :global(.animate-on-scroll) {
-    opacity: 0;
+  .page {
+    position: relative;
+    min-height: 100vh;
+    background: #0a0a0a;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 6rem 1.5rem 4rem;
+  }
+
+  .hero-grid {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-grid {
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 4rem;
+    }
+  }
+
+  .live-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .live-label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #9a9a9a;
+  }
+
+  .brand {
+    margin: 0 0 1.25rem;
+    font-size: clamp(3.5rem, 9vw, 6.5rem);
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    color: #fff;
+  }
+
+  .tagline {
+    margin: 0 0 0.75rem;
+    max-width: 28rem;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 500;
+    color: #b0b0b0;
+    line-height: 1.35;
+  }
+
+  .subhead {
+    margin: 0;
+    max-width: 28rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #9a9a9a;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2.25rem;
+  }
+
+  /* ----- Raycast-style floating toolbar ----- */
+  .toolbar {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    width: min(960px, calc(100vw - 2rem));
+    height: 46px;
+    padding: 0 1rem;
+    background: rgba(19, 19, 22, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+  }
+
+  .toolbar-brand {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .toolbar-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .toolbar-links a {
+    color: #a1a1a6;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.35rem 0.7rem;
+    border-radius: 8px;
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+  }
+
+  .toolbar-links a:hover {
+    color: #fff;
+    text-shadow: 0 0 14px rgba(255, 255, 255, 0.5);
+  }
+
+  /* ----- Racetrack light around the beta CTA ----- */
+  .race {
+    position: relative;
+    display: inline-flex;
+    padding: 1.5px;
+    border-radius: 9999px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* Oversized spinning conic gradient: faint static track + one bright comet
+     lapping the border like a racecar. Only the 1.5px ring is visible. */
+  .race::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 340%;
+    aspect-ratio: 1 / 1;
+    z-index: -1;
+    transform: translate(-50%, -50%) rotate(0turn);
+    background: conic-gradient(
+      from 0deg,
+      rgba(255, 107, 26, 0.12) 0deg,
+      rgba(255, 107, 26, 0.12) 300deg,
+      rgba(255, 107, 26, 0.45) 332deg,
+      rgba(255, 122, 41, 0.95) 356deg,
+      rgba(255, 107, 26, 0.12) 360deg
+    );
+    animation: raceLap 3.2s linear infinite;
+  }
+
+  @keyframes raceLap {
+    to {
+      transform: translate(-50%, -50%) rotate(1turn);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .race::before {
+      animation: none;
+    }
+  }
+
+  /* 50% smaller beta CTA, pill-shaped to match the track.
+     Hollow, Raycast-style: near-black inside, just the words —
+     the racetrack comet is the only border. */
+  .btn-beta {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.8rem;
+    border-radius: 9999px;
+    background: #0b0b0b;
+    color: #f5f5f5;
+    font-weight: 500;
+  }
+
+  .btn-beta:hover {
+    background: #131313;
+    color: #fff;
+  }
+
+  .hero-visual {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .section-head {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .section-head h2 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+
+  .section-head p {
+    margin: 0;
+    color: #9a9a9a;
+    font-size: 1.05rem;
+  }
+
+  .preview-section {
+    padding-top: 2rem;
+    overflow: hidden;
+  }
+
+  .preview-section .section-inner {
+    max-width: 1100px;
+  }
+
+  .feature-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .feature-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .feature-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .feature-card h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .feature-card p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #9a9a9a;
+  }
+
+  .stats-row {
+    display: grid;
+    gap: 2.5rem;
+    text-align: center;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+    padding: 3rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .stats-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .stat-num {
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+
+  .stats-row p {
+    margin: 0.4rem 0 0;
+    color: #9a9a9a;
+    font-size: 0.95rem;
+  }
+
+  /* Constrains the bordered star-anchor frame to hug the card (card width + frame padding). */
+  .login-frame {
+    max-width: calc(420px + 2.5rem);
+    margin: 0 auto;
+  }
+
+  .login-card {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  .login-card h2 {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+  }
+
+  .login-sub {
+    margin: 0 0 1.75rem;
+    color: #9a9a9a;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .error {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: rgba(255, 82, 102, 0.12);
+    border: 1px solid rgba(255, 82, 102, 0.35);
+    color: #ff8a96;
+    font-size: 0.875rem;
+  }
+
+  .w-full {
+    width: 100%;
+  }
+
+  .g-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .perks {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 1.5rem 0 0;
+    border-top: 1px solid #222;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .perks li {
+    position: relative;
+    padding-left: 1.1rem;
+    font-size: 0.875rem;
+    color: #b0b0b0;
+  }
+
+  .perks li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.45em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff6b1a;
+  }
+
+  .footer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 3rem;
+    border-top: 1px solid #222;
+    color: #9a9a9a;
+    font-size: 0.875rem;
+  }
+
+  .footer .display-font {
+    color: #fff;
+    font-weight: 600;
   }
 </style>
-

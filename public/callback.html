@@ -3,82 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="0" id="meta-refresh">
+  <meta http-equiv="refresh" content="0; url=/">
   <title>Redirecting...</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    .loader {
-      text-align: center;
-      color: white;
-    }
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top: 4px solid white;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
 </head>
 <body>
-  <div class="loader">
-    <div class="spinner"></div>
-    <p>Completing authentication...</p>
-  </div>
-  
   <script>
-    (function() {
-      try {
-        // Get OAuth parameters from URL query string
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const error = urlParams.get('error');
-        
-        console.log('Callback.html loaded');
-        console.log('Current URL:', window.location.href);
-        console.log('Params:', { code, state, error });
-        
-        // Build the hash-based URL for the Svelte app
-        const baseUrl = window.location.origin; // e.g., http://localhost:3001
-        let hashUrl = `${baseUrl}/#/callback?`;
-        
-        if (error) {
-          hashUrl += `error=${encodeURIComponent(error)}`;
-        } else if (code && state) {
-          hashUrl += `code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
-        } else {
-          hashUrl = `${baseUrl}/#/login`;
-        }
-        
-        console.log('Redirecting to:', hashUrl);
-        
-        // Set meta refresh as fallback
-        document.getElementById('meta-refresh').setAttribute('content', `0; url=${hashUrl}`);
-        
-        // Redirect to the hash-based route
-        window.location.replace(hashUrl);
-      } catch (err) {
-        console.error('Callback redirect error:', err);
-        // Fallback: redirect to home
-        window.location.replace(window.location.origin + '/#/login');
-      }
-    })();
+    window.location.replace(window.location.origin + '/');
   </script>
 </body>
 </html>
-

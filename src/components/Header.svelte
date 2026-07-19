@@ -11,55 +11,147 @@
   }
 </script>
 
-<header class="bg-white shadow-sm">
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
-      <div class="flex items-center">
-        <a href="#/dashboard" class="flex items-center space-x-2">
-          <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span class="text-xl font-bold text-gray-900">TradeState</span>
-        </a>
-      </div>
+<header class="header">
+  <nav class="nav">
+    <a href="#/dashboard" class="brand display-font">TradeState</a>
 
-      <div class="hidden md:flex items-center space-x-8">
-        <a href="#/dashboard" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
-          Dashboard
-        </a>
-        <a href="/study.html" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
-          Study Gallery
-        </a>
-        <a href="/leading-groups.html" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
-          Leading Groups
-        </a>
-      </div>
+    <div class="links">
+      <a href="#/dashboard">Dashboard</a>
+      <a href="/study.html">Study Gallery</a>
+      <a href="/leading-groups.html">Leading Groups</a>
+    </div>
 
-      <div class="flex items-center space-x-4">
-        {#if $authStore.isAuthenticated}
-          <div class="hidden md:flex items-center space-x-3">
-            <div class="text-right">
-              <p class="text-sm font-medium text-gray-900">{displayName}</p>
-              <p class="text-xs text-gray-500">Google account</p>
-            </div>
-            {#if avatarUrl}
-              <img src={avatarUrl} alt="" class="w-10 h-10 rounded-full object-cover" />
-            {:else}
-              <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            {/if}
+    <div class="account">
+      {#if $authStore.isAuthenticated}
+        <div class="user">
+          <div class="meta">
+            <p class="name">{displayName}</p>
+            <p class="sub">Google account</p>
           </div>
-          <button
-            on:click={handleLogout}
-            class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
-        {/if}
-      </div>
+          {#if avatarUrl}
+            <img src={avatarUrl} alt="" class="avatar" />
+          {:else}
+            <div class="avatar placeholder"></div>
+          {/if}
+        </div>
+        <button type="button" class="logout" on:click={handleLogout}>Logout</button>
+      {/if}
     </div>
   </nav>
 </header>
+
+<style>
+  .header {
+    border-bottom: 1px solid #222;
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .nav {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .brand {
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: -0.03em;
+    color: #fff;
+    text-decoration: none;
+    margin-right: auto;
+  }
+
+  .links {
+    display: none;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .links {
+      display: flex;
+    }
+  }
+
+  .links a {
+    color: #9a9a9a;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .links a:hover {
+    color: #ff6b1a;
+  }
+
+  .account {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user {
+    display: none;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  @media (min-width: 768px) {
+    .user {
+      display: flex;
+    }
+  }
+
+  .meta {
+    text-align: right;
+  }
+
+  .name {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .sub {
+    margin: 0;
+    font-size: 0.7rem;
+    color: #9a9a9a;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #2a2a2a;
+  }
+
+  .avatar.placeholder {
+    background: #161616;
+  }
+
+  .logout {
+    border: 1px solid #2a2a2a;
+    background: transparent;
+    color: #b0b0b0;
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .logout:hover {
+    border-color: #ff6b1a;
+    color: #ff6b1a;
+  }
+</style>

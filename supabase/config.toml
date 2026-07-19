@@ -29,7 +29,7 @@ file_size_limit = "50MiB"
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000"]
+additional_redirect_urls = ["http://localhost:3000", "https://tradestate.io"]
 jwt_expiry = 3600
 enable_signup = true
 
@@ -38,15 +38,8 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
-# Edge Functions
-[functions.oauth-initiate]
-verify_jwt = false
-
-[functions.oauth-callback]
-verify_jwt = false
-
-[functions.tradovate-proxy]
-verify_jwt = false
-
-
-
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+redirect_uri = "http://localhost:54321/auth/v1/callback"

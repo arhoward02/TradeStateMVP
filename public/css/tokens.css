@@ -1,0 +1,24 @@
+:root {
+  --bg: #0a0a0a;
+  --panel: #111111;
+  --panel-2: #161616;
+  --elevated: #161616;
+  --line: #222222;
+  --border: #222222;
+  --border-strong: #2a2a2a;
+  --text: #ffffff;
+  --muted: #9a9a9a;
+  --secondary: #b0b0b0;
+  --accent: #ff6b1a;
+  --accent-hover: #ff7a29;
+  --teal: #ff6b1a;
+  --blue: #ff6b1a;
+  --purple: #ff7a29;
+  --red: #ff5266;
+  --amber: #e0a94c;
+  --green: #3ecf8e;
+  --orange: #ff6b1a;
+  --mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}

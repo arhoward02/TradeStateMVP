@@ -6,69 +6,133 @@
   $: displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Trader';
 </script>
 
-<div class="min-h-screen bg-gray-50">
+<div class="page">
   <Header />
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome, {displayName}</h1>
-      <p class="text-gray-600">Your trade journal is saved securely to the cloud.</p>
-    </div>
+  <main>
+    <header class="welcome">
+      <h1 class="display-font">Welcome, {displayName}</h1>
+      <p>Your trade journal is saved securely to the cloud.</p>
+    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-      <a href="/study.html" class="card hover:shadow-md transition-shadow block">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 mb-1">Trade Journal</p>
-            <p class="text-xl font-semibold text-gray-900">Study Gallery</p>
-            <p class="text-sm text-gray-500 mt-2">Log stock + index chart studies with tags and notes.</p>
-          </div>
-          <div class="p-3 bg-primary-100 rounded-full">
-            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
+    <div class="grid">
+      <a href="/study.html" class="tool-card">
+        <p class="eyebrow">Trade Journal</p>
+        <h2>Study Gallery</h2>
+        <p class="desc">Log stock + index chart studies with tags and notes.</p>
       </a>
 
-      <a href="/leading-groups.html" class="card hover:shadow-md transition-shadow block">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 mb-1">Market Breadth</p>
-            <p class="text-xl font-semibold text-gray-900">Leading Groups</p>
-            <p class="text-sm text-gray-500 mt-2">Paste Deepvue ranks + themes to find top leaders.</p>
-          </div>
-          <div class="p-3 bg-primary-100 rounded-full">
-            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-        </div>
+      <a href="/leading-groups.html" class="tool-card">
+        <p class="eyebrow">Market Breadth</p>
+        <h2>Leading Groups</h2>
+        <p class="desc">Paste Deepvue ranks + themes to find top leaders.</p>
       </a>
 
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 mb-1">Account</p>
-            <p class="text-xl font-semibold text-gray-900">Google</p>
-            <p class="text-sm text-gray-500 mt-2">{user?.email || 'Signed in'}</p>
-          </div>
-          <div class="p-3 bg-green-100 rounded-full">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        </div>
+      <div class="tool-card static">
+        <p class="eyebrow">Account</p>
+        <h2>Google</h2>
+        <p class="desc">{user?.email || 'Signed in'}</p>
       </div>
     </div>
 
-    <div class="card bg-gradient-to-r from-primary-50 to-blue-50 border-2 border-primary-200">
-      <div class="text-center py-8">
-        <h3 class="text-2xl font-bold text-gray-900 mb-2">More Features Coming Soon</h3>
-        <p class="text-gray-600 max-w-2xl mx-auto">
-          Portfolio tracking, analytics, and biometric insights are on the way.
-        </p>
-      </div>
+    <div class="coming">
+      <h3 class="display-font">More features coming soon</h3>
+      <p>Portfolio tracking, analytics, and biometric insights are on the way.</p>
     </div>
   </main>
 </div>
+
+<style>
+  .page {
+    min-height: 100vh;
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .welcome h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+  }
+
+  .welcome p {
+    margin: 0;
+    color: #9a9a9a;
+  }
+
+  .grid {
+    display: grid;
+    gap: 1rem;
+    margin: 2rem 0;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .tool-card {
+    display: block;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #222;
+    background: #111;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.25s ease, transform 0.25s ease;
+  }
+
+  a.tool-card:hover {
+    border-color: #ff6b1a;
+    transform: translateY(-2px);
+  }
+
+  .eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ff6b1a;
+  }
+
+  .tool-card h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .desc {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #9a9a9a;
+  }
+
+  .coming {
+    margin-top: 1rem;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    border: 1px solid #222;
+    border-radius: 12px;
+    background: #111;
+  }
+
+  .coming h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+
+  .coming p {
+    margin: 0;
+    color: #9a9a9a;
+  }
+</style>
